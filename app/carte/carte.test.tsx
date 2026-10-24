@@ -1,5 +1,5 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import { nouvellePartie, observer, type CartePublique, type PieceCarte, type RectPlan, type RefPiece } from '../../engine';
+import { nouvellePartie, observer, type CartePublique, type EtatCapteur, type PieceCarte, type RectPlan, type RefPiece } from '../../engine';
 import { ficheDe, MONDES, rendreListeCarte, type EntreeMonde } from '../../content';
 import { EcranCarte } from './EcranCarte';
 import { FicheCarte } from './FicheCarte';
@@ -112,6 +112,34 @@ describe('écran de la carte (14 §2)', () => {
     expect(plan(carte).match(/class="icone-capteur" data-etat="mouvement"/g)).toHaveLength(1);
     expect(plan()).not.toContain('icone-capteur');
     expect(texte(renderToStaticMarkup(<ListeCarte blocs={rendreListeCarte(textes, carte)} />))).toContain('CAPTEUR : MOUVEMENT');
+  });
+
+  it('caméras du poste : un carré par caméra, sa forme dit son état ; une pièce n’y est pas un bouton (lot 4)', () => {
+    const avec = (cameras: ReadonlyMap<string, EtatCapteur>): string =>
+      renderToStaticMarkup(
+        <PlanCarte carte={CARTE} textes={textes} vue={{ zoom: 1, x: 0, y: 0 }} casePx={34} zoomMin={0.5} changerVue={rien} toucher={rien} ouverte={null} cameras={cameras} />,
+      );
+    const icone = (html: string, etat: EtatCapteur): string => {
+      const debut = html.indexOf(`<g class="icone-camera" data-etat="${etat}"`);
+      return debut === -1 ? '' : html.slice(debut, html.indexOf('</g>', debut));
+    };
+    const html = avec(new Map<string, EtatCapteur>([['e-salon', 'mouvement'], ['e-galerie', 'calme']]));
+    expect(html.match(/class="icone-camera"/g)).toHaveLength(2);
+    expect(icone(html, 'mouvement')).toContain('class="onde"');
+    expect(icone(html, 'mouvement')).toContain('class="objectif"');
+    expect(icone(html, 'calme')).toContain('class="objectif"');
+    expect(icone(html, 'calme')).not.toContain('class="onde"');
+    const brouille = icone(avec(new Map<string, EtatCapteur>([['e-salon', 'brouille']])), 'brouille');
+    expect(brouille).toContain('class="corps"');
+    expect(brouille).not.toContain('objectif');
+    expect(brouille).not.toContain('barre');
+    expect(icone(avec(new Map<string, EtatCapteur>([['e-salon', 'hs']])), 'hs')).toContain('class="barre"');
+    expect(html).not.toContain('aria-haspopup');
+    // Ni bouton ni arrêt de tabulation : la pièce n'y fait rien ; ses étiquettes restent affichées.
+    expect(html).not.toContain('<button');
+    expect(html).toMatch(/<div class="carte-piece" data-statut="[a-z]+"/);
+    expect(plan()).toContain('<button');
+    expect(plan()).not.toContain('icone-camera');
   });
 
   it('portes : ouverture bordée de taquets, barre si fermée (D-355), tirets, « ? », sans voyant (D-355) ; capsule arrimée dehors (14 §2.6)', () => {

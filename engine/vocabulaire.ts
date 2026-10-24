@@ -30,6 +30,8 @@ export const ACTIONS = [
   'retablir',
   'boucler',
   'actionner',
+  'deverrouiller',
+  'surveiller',
   'envoyer',
   'tenir',
   'lacher',
@@ -116,6 +118,8 @@ export const TYPES_EVENEMENT = [
   'bruit_couvert',
   'chute_entendue',
   'cloison_deverrouillee',
+  'terminal_deverrouille',
+  'terminal_connecte',
   'porte_secouee',
   'porte_enfoncee',
   'bruit_station',
@@ -165,6 +169,7 @@ export const RAISONS_REFUS = [
   'verrouillee',
   'enfoncee',
   'sans_carte',
+  'sans_mot_de_passe',
   'lacher_poignee',
   'frein_serre',
   'encombre_par_obstacle',
@@ -190,6 +195,7 @@ export const RAISONS_INDISPONIBILITE = [
   'verrouillee',
   'enfoncee',
   'sans_carte',
+  'sans_mot_de_passe',
   'lacher_poignee',
   'frein_serre',
   'encombre_par_obstacle',
@@ -323,7 +329,7 @@ export type Evenement =
   /** Conclusion de la partie : sources qui alimentaient la capsule, circuit puis bloc. */
   | { readonly type: 'evacuation'; readonly sources: readonly SourceEvacuation[] }
   /** Message de l'IA de la station reçu à ce pas : son texte est écrit à la main, hors du récit (C-07). */
-  | { readonly type: 'assistance'; readonly message: string }
+  | { readonly type: 'assistance'; readonly message: string; readonly signe?: SignePublic }
   /** Un pont fragile posé en travers d'un vide (D-164). */
   | { readonly type: 'pont_place'; readonly objet: RefObjet; readonly passage: RefPassage }
   /** La créature s'engage sur le pont fragile : il cède, elle tombe, il est perdu ; entendu depuis l'un des deux bords (D-164, D-236). */
@@ -342,6 +348,10 @@ export type Evenement =
   | { readonly type: 'chambre_bouclee'; readonly objet: RefObjet; readonly piece: RefPiece }
   /** Une commande de déverrouillage actionnée : sa cloison n'est plus verrouillée (D-259). */
   | { readonly type: 'cloison_deverrouillee'; readonly objet: RefObjet }
+  /** Le code du post-it tapé au terminal : il reste déverrouillé pour la partie (lot 4). */
+  | { readonly type: 'terminal_deverrouille' }
+  /** Le mot de passe accepté, le terminal révèle la station et montre ses caméras (lot 4). */
+  | { readonly type: 'terminal_connecte' }
   /**
    * Alertée, la créature force une porte fermée sur sa piste : le passager l'entend s'acharner, puis la porte cède et s'ouvre
    * (D-279) ; seulement s'il est dans l'une des deux pièces de la porte.
@@ -356,11 +366,20 @@ export type MomentMessage =
   | { readonly type: 'arrivee'; readonly piece: RefPiece }
   | { readonly type: 'evacuation' }
   /** À la 15e attente de suite où rien ne se passe (#225). */
-  | { readonly type: 'patience' };
+  | { readonly type: 'patience' }
+  /** Sur la face 2 du dé de rencontre, à la place du bruit lointain (lot 4). */
+  | { readonly type: 'signe' };
+
+/** Fait vrai que signale IA Station, en références publiques : porte forcée, matériel perdu, passage récent, présence (lot 4). */
+export type SignePublic =
+  | { readonly sorte: 'porte'; readonly pieces: readonly [RefPiece, RefPiece] }
+  | { readonly sorte: 'materiel'; readonly piece: RefPiece; readonly appareil: 'camera' | 'capteur' }
+  | { readonly sorte: 'passage' | 'presence'; readonly piece: RefPiece };
 
 export interface MessageRecu {
   readonly message: string;
   readonly moment: MomentMessage;
+  readonly signe?: SignePublic;
 }
 
 /** Ce qui alimentait la capsule au départ : le circuit réarmé, un bloc installé, ou les deux ; sinon sa propre réserve (AR-02 §5.2). */
@@ -592,6 +611,8 @@ export interface Observation {
   readonly drones?: readonly { readonly objet: RefObjet; readonly phase: PhaseDrone }[];
   readonly poigneeTenue?: RefObjet;
   readonly freins?: readonly { readonly objet: RefObjet; readonly desserre: boolean }[];
+  /** Caméras lues en direct, dans l'ordre du monde : seulement connecté, dans la salle de surveillance (lot 4). */
+  readonly cameras?: readonly { readonly piece: RefPiece; readonly etat: EtatCapteur }[];
   readonly piece: RefPiece;
   readonly objets: readonly RefObjet[];
   /** Objets déplaçables de la pièce posés à une position (C-02 §2), comme la caisse sous la grille. */

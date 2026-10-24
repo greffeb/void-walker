@@ -35,6 +35,7 @@ import {
   type EtatPartie,
 } from './etat';
 import { indexer, type DefLiaison, type DefMonde, type DefObjet } from './monde';
+import { reveler } from './surveillance';
 import type { Apercu, Consultation, Cout, EtatCapteur, Evenement, IdAction, RaisonRefus, RefPassage, RefPiece, Sante, Savoir, SourceEvacuation } from './vocabulaire';
 
 export interface Contexte {
@@ -967,6 +968,50 @@ const actionner: ActionEngagee = {
   },
 };
 
+function terminauxIci({ monde, etat }: Contexte): DefObjet[] {
+  return objetsDans(monde, etat, etat.piece).filter((candidat) => candidat.terminal === true);
+}
+
+/**
+ * Terminaux de la pièce dont le mot de passe n'a pas encore été tapé, le post-it en main (lot 4, D-356) : sans lui, l'option n'existe
+ * pas, pour ne pas souffler qu'un post-it existe ; seul « Se connecter » se refuse.
+ */
+function verrouillesIci(contexte: Contexte): DefObjet[] {
+  if (contexte.etat.terminalDeverrouille === true) return [];
+  return terminauxIci(contexte).filter((candidat) => candidat.exige !== undefined && contexte.etat.objets[candidat.exige]?.type === 'passager');
+}
+
+/**
+ * Déverrouiller : utiliser le post-it sur le terminal, une action discrète ; le mot de passe est tapé pour la partie, le post-it
+ * peut ensuite quitter les mains (lot 4, D-356). Sans le post-it en main, l'action n'est pas proposée.
+ */
+const deverrouiller: ActionEngagee = {
+  id: 'deverrouiller',
+  engage: true,
+  cibles: (contexte) => verrouillesIci(contexte).map((candidat) => candidat.id),
+  verifier: (contexte, cible) => {
+    return verrouillesIci(contexte).some((candidat) => candidat.id === cible) ? null : 'cible_absente';
+  },
+  prevoir: () => ({ ...SANS_DANGER, savoir: [] }),
+  appliquer: ({ etat }) => ({ etat: { ...etat, terminalDeverrouille: true }, evenements: [{ type: 'terminal_deverrouille' }] }),
+};
+
+/**
+ * Surveiller : au terminal déverrouillé (ou sans mot de passe), une action discrète connecte le passager pour la partie et révèle
+ * la station ; on peut y revenir pour remettre le plan à jour (lot 4).
+ */
+const surveiller: ActionEngagee = {
+  id: 'surveiller',
+  engage: true,
+  cibles: (contexte) => terminauxIci(contexte).map((candidat) => candidat.id),
+  verifier: (contexte, cible) => {
+    if (!terminauxIci(contexte).some((candidat) => candidat.id === cible)) return 'cible_absente';
+    return objet(contexte.monde, cible).exige !== undefined && contexte.etat.terminalDeverrouille !== true ? 'sans_mot_de_passe' : null;
+  },
+  prevoir: () => ({ ...SANS_DANGER, savoir: [] }),
+  appliquer: ({ monde, etat }) => ({ etat: reveler(monde, { ...etat, connecte: true }), evenements: [{ type: 'terminal_connecte' }] }),
+};
+
 /** Attendre : un tour sans rien faire, la créature réagit une fois et les dangers se propagent comme à toute action (D-274). */
 const attendre: ActionEngagee = {
   id: 'attendre',
@@ -1006,6 +1051,8 @@ const DEFINITIONS: Readonly<Record<IdAction, DefAction>> = {
   retablir,
   boucler,
   actionner,
+  deverrouiller,
+  surveiller,
   attendre,
 };
 

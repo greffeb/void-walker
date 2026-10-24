@@ -53,6 +53,44 @@ export const UNIVERS = {
       'Vous vous réveillez dans {le:piece}, la nuque raide. Les lumières de service sont au rouge.',
       'Une secousse vous tire du sommeil. Vous êtes dans {le:piece}, sous un éclairage rouge.',
     ],
+    // Le code du post-it tapé au terminal de la salle de surveillance (lot 4, D-356).
+    terminal_deverrouille: [
+      'Vous tapez le code du post-it. Le terminal accepte : ACCÈS AUTORISÉ.',
+      'Vous recopiez le code du post-it, touche après touche. Le terminal accepte : ACCÈS AUTORISÉ.',
+    ],
+    // Connexion au terminal déverrouillé (lot 4).
+    terminal_connecte: [
+      'Vous vous connectez au terminal. PLAN DE LA STATION CHARGÉ.',
+      'L’écran du terminal s’éclaire. PLAN DE LA STATION CHARGÉ.',
+    ],
+  },
+  // Messages d'IA Station sur un fait vrai (lot 4) : pour elle, une panne ou une anomalie technique, jamais la menace, sans chiffre.
+  signesIA: {
+    porte: [
+      'Porte entre {le:piece} et {le:autre} : intégrité compromise. Une intervention de maintenance a été planifiée. Merci de votre patience.',
+      'Porte entre {le:piece} et {le:autre} : verrou hors service. Son remplacement est prévu au prochain cycle d’entretien.',
+      'Anomalie mécanique sur la porte entre {le:piece} et {le:autre}. Merci de signaler tout dommage au personnel de bord.',
+    ],
+    materiel: {
+      camera: [
+        'Caméra {de:piece} : liaison perdue. Un technicien sera dépêché dès que possible.',
+        'Caméra {de:piece} : signal vidéo interrompu. L’incident a été transmis au service technique.',
+      ],
+      capteur: [
+        'Capteur de mouvement {de:piece} : liaison perdue. Aucune action n’est requise de votre part.',
+        'Capteur de mouvement {de:piece} : plus aucun signal. Le service technique en a été informé.',
+      ],
+    },
+    passage: [
+      '{Nom:piece} : détecteur de présence déclenché, puis revenu au repos. Aucune action n’est requise.',
+      '{Nom:piece} : éclairage allumé par le détecteur, puis éteint. Aucune action n’est requise.',
+    ],
+    presence: [
+      '{Nom:piece} : obstruction de la ventilation signalée. Merci de ne pas encombrer les bouches d’aération.',
+      '{Nom:piece} : éclairage instable. Une vérification du circuit est en cours.',
+      '{Nom:piece} : niveau sonore inhabituel enregistré. Merci de respecter le calme des espaces communs.',
+      '{Nom:piece} : courant d’air anormal signalé. Une vérification de la ventilation est programmée.',
+    ],
   },
   evacuations: {
     circuit: ['Le circuit tient. La capsule se détache du quai.'],
@@ -83,6 +121,7 @@ export const UNIVERS = {
     momentArrivee: 'en arrivant · {Nom:piece}',
     momentEvacuation: 'au départ de la capsule',
     momentPatience: 'en attendant',
+    momentSigne: 'en cours de route',
   },
   // Pillage (spec 2026-10-18 §6.6) : une phrase entière, vraie dans toute salle de butin vidée avant le joueur. Elle dit que
   // quelqu'un est passé, jamais qui ni où. Sans mot de trace ni de menace. Écrites par l'assistant principal (D-243).

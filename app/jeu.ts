@@ -1,4 +1,4 @@
-import { apercu, exporter, historique, jouer, nouvellePartie, observer, rejouer, reprendrePartie, type DefMonde, type Evenement, type Observation, type OptionMenu, type Partie } from '../engine';
+import { apercu, exporter, historique, jouer, nouvellePartie, observer, rejouer, reprendrePartie, type DefMonde, type EtatCapteur, type Evenement, type Observation, type OptionMenu, type Partie, type RefPiece } from '../engine';
 import { alertesMenace, dangersDuRecit, raconter, raconterDerniers, raconterFin, rendreDangerVu, rendreApercu, rendreAssistance, rendreDocument, rendreMoment, texteAssistance, type ApercuTexte, type Catalogue, type DocumentRendu, type EntreeMonde, type RecitFin, type Refus, type TextesMonde } from '../content';
 import { rappelDe, rappelRepris, texteRappel, type TexteRappel } from './ecran';
 import type { Stockage } from './sauvegarde';
@@ -210,6 +210,33 @@ export async function jouerOption(env: Environnement, jeu: Jeu, option: OptionMe
   return { partie: resultat.partie, ...signale, rappel, assistance, sauvegarde: await enregistrer(env, resultat.partie) };
 }
 
+/** Caméra du poste de surveillance et son état (lot 4). */
+export type CameraLue = { readonly piece: RefPiece; readonly etat: EtatCapteur };
+
+/**
+ * Caméras qui ont changé d'état entre deux observations, pour le journal de la fenêtre du poste (lot 4). Sans observation
+ * d'avant (on vient de se connecter), chaque caméra est comparée à « calme » : une caméra déjà au mouvement se dit tout de suite.
+ */
+export function camerasChangees(avant: Observation['cameras'], apres: Observation['cameras']): readonly CameraLue[] {
+  return (apres ?? []).filter((camera) => camera.etat !== (avant?.find((autre) => autre.piece.id === camera.piece.id)?.etat ?? 'calme'));
+}
+
+/**
+ * La fenêtre du poste se ferme d'elle-même (lot 4, D-359) seulement quand le récit doit se lire en grand : la créature entre dans la
+ * salle ou s'y montre, un danger (feu, vide) y est, la partie finit, ou le passager n'est plus connecté dans la salle. Le reste
+ * (écoute, signe, message) ne s'écrit que dans le récit et l'historique : le journal de la fenêtre ne dit que les caméras.
+ */
+export function fermerPoste(observation: Observation, evenements: readonly Evenement[]): boolean {
+  return (
+    observation.cameras === undefined ||
+    observation.terminee ||
+    observation.feu ||
+    observation.sansAir ||
+    observation.creatureVisible ||
+    evenements.some(({ type }) => type === 'creature_entre')
+  );
+}
+
 /** Message de l'historique d'IA Station (12 §3.9) : son identifiant, son repère de moment sans heure, puis le texte. */
 export interface MessageAffiche {
   readonly message: string;
@@ -219,10 +246,10 @@ export interface MessageAffiche {
 
 /** Messages reçus, du plus ancien au plus récent ; seulement ceux déjà reçus, aucune réponse d'état (C-06 K-06). */
 export function historiqueAffiche(env: Pick<Environnement, 'monde' | 'textes'>, partie: Partie): MessageAffiche[] {
-  return historique(env.monde, partie.etat).map(({ message, moment }) => ({
+  return historique(env.monde, partie.etat).map(({ message, moment, signe }) => ({
     message,
     repere: rendreMoment(env.textes, moment),
-    texte: texteAssistance(env.textes, message),
+    texte: texteAssistance(env.textes, message, signe),
   }));
 }
 

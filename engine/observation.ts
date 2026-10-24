@@ -20,9 +20,11 @@ import {
   sansGravite,
   type EtatPartie,
 } from './etat';
-import { carte } from './carte';
+import { carte, pieceDeCarte } from './carte';
 import { indexer, type DefMonde } from './monde';
 import { sortiePossible } from './sortie';
+import { camerasLues, salleDeSurveillance } from './surveillance';
+import { rangSigne, signePublic } from './signes';
 import {
   ACTIONS,
   RAISONS_INDISPONIBILITE,
@@ -83,6 +85,10 @@ export function menu(monde: DefMonde, etat: EtatPartie): OptionMenu[] {
 /** Messages d'assistance reçus, dans l'ordre, avec le moment prévu de chacun : un message n'arrive qu'une fois (D-081). */
 export function historique(monde: DefMonde, etat: EtatPartie): MessageRecu[] {
   return etat.messages.map((message) => {
+    // Un message d'IA Station sur la face 2 rend le fait signalé, à son rang dans `etat.signes` (lot 4).
+    const rang = rangSigne(message);
+    const signe = rang === null ? undefined : etat.signes?.[rang - 1];
+    if (signe !== undefined) return { message, moment: { type: 'signe' }, signe: signePublic(monde, signe) };
     const quand = (monde.assistance ?? []).find((def) => def.id === message)?.quand;
     if (quand === undefined) throw new Error(`Message d'assistance inconnu : ${message}.`);
     if (quand.type === 'evacuation' || quand.type === 'patience') return { message, moment: quand };
@@ -108,6 +114,10 @@ export function observer(monde: DefMonde, etat: EtatPartie): Observation {
       }]),
       ...(etat.drones.tenue === null ? {} : { poigneeTenue: refObjet(monde, etat.drones.tenue) }),
     }),
+    // Connecté, dans la salle ou une de ses sous-positions, le passager voit les caméras en direct (lot 4).
+    ...(etat.connecte === true && pieceDeCarte(monde, etat.piece) === salleDeSurveillance(monde)
+      ? { cameras: camerasLues(monde, etat).map((camera) => ({ piece: refPiece(monde, camera.piece), etat: camera.etat })) }
+      : {}),
     piece: refPiece(monde, etat.piece),
     objets: visibles.map((objet) => refObjet(monde, objet.id)),
     placements: ici.flatMap((objet) => {

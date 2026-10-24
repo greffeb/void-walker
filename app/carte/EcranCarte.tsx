@@ -1,11 +1,11 @@
 import { useId, useLayoutEffect, useRef, useState } from 'react';
-import type { CartePublique, PieceCarte } from '../../engine';
+import type { CartePublique, EtatCapteur, PieceCarte } from '../../engine';
 import { ficheDe, libellePlan, MOTS_CARTE, rendreListeCarte, type TextesMonde } from '../../content';
 import { garderFocus } from '../bulle';
 import { FicheCarte } from './FicheCarte';
 import { ListeCarte } from './ListeCarte';
 import { PlanCarte } from './PlanCarte';
-import { borner, cadreConnu, vueInitiale, zoomMin, type Taille, type Vue } from './vue';
+import { borner, cadreConnu, vueEntiere, vueInitiale, zoomMin, type Taille, type Vue } from './vue';
 import { LIBELLES } from '../libelles';
 
 /** Fiche ouverte : la pièce, par identifiant public, et son bouton, qui reprend le focus à la fermeture (12 §7). */
@@ -19,17 +19,22 @@ interface Mesure {
   readonly casePx: number;
 }
 
-/** Zone du plan : mesure sa taille et la case à l'échelle du texte ; s'ouvre centrée sur la pièce actuelle (D-205). */
-function ZonePlan({
+/**
+ * Zone du plan : mesure sa taille et la case à l'échelle du texte ; s'ouvre centrée sur la pièce actuelle (D-205). Avec `cameras`,
+ * dans la fenêtre du poste, elle s'ouvre sur toute la station (lot 4).
+ */
+export function ZonePlan({
   carte,
   textes,
   ouverte,
   toucher,
+  cameras,
 }: {
   readonly carte: CartePublique;
   readonly textes: TextesMonde;
   readonly ouverte: string | null;
   readonly toucher: (piece: PieceCarte, bouton: HTMLButtonElement) => void;
+  readonly cameras?: ReadonlyMap<string, EtatCapteur>;
 }) {
   const zone = useRef<HTMLDivElement>(null);
   const etalon = useRef<HTMLDivElement>(null);
@@ -50,7 +55,8 @@ function ZonePlan({
     observateur.observe(reference);
     return () => observateur.disconnect();
   }, []);
-  const initiale = mesure === null ? null : vueInitiale(carte, mesure.taille, mesure.casePx);
+  const initiale =
+    mesure === null ? null : cameras !== undefined && cadre !== null ? vueEntiere(cadre, mesure.taille, mesure.casePx) : vueInitiale(carte, mesure.taille, mesure.casePx);
   const affichee = vue ?? initiale;
   const minimum = cadre === null || mesure === null ? 1 : zoomMin(cadre, mesure.taille, mesure.casePx);
   const changerVue = (maj: (courante: Vue) => Vue): void => {
@@ -61,7 +67,7 @@ function ZonePlan({
     <div ref={zone} className="carte-zone" role="group" aria-label={libellePlan(textes, carte)}>
       <div ref={etalon} className="carte-etalon" aria-hidden="true" />
       {mesure !== null && affichee !== null && (
-        <PlanCarte carte={carte} textes={textes} vue={affichee} casePx={mesure.casePx} zoomMin={minimum} changerVue={changerVue} toucher={toucher} ouverte={ouverte} />
+        <PlanCarte carte={carte} textes={textes} vue={affichee} casePx={mesure.casePx} zoomMin={minimum} changerVue={changerVue} toucher={toucher} ouverte={ouverte} cameras={cameras} />
       )}
     </div>
   );

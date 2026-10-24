@@ -4,7 +4,7 @@ import { PIECES_CATALOGUE } from './pieces';
 import { TEXTES_CATALOGUE } from './textes';
 
 export { TABLE_BUTIN } from './butin';
-export { PIECES_CATALOGUE } from './pieces';
+export { PIECES_CATALOGUE, SALLE_SURVEILLANCE } from './pieces';
 export { TEXTES_CATALOGUE } from './textes';
 
 /** Textes d'une pièce du catalogue : son nom et ses descriptions, sous ses clés `cat_…`. */

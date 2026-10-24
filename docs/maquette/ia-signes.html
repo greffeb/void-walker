@@ -1,0 +1,123 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Signes d'IA Station Void Walker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Maquette des messages d'IA Station de la face 2 (lot 4) : quatre sortes de messages, le « ! » sur le bouton, puis la fenêtre. 390 px, Phosphore. */
+:root {
+  color-scheme: dark;
+  --fond: #0a0907;
+  --surface: #14100a;
+  --texte: #f4c27a;
+  --accent: #ffb23f;
+  --secondaire: #b08850;
+  --bordure: #76603a;
+  --separateur: #4a3a20;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+}
+[hidden] { display: none !important; }
+html, body { background: #050403; margin: 0; }
+body { color: var(--texte); font-family: var(--mono); font-size: 15px; line-height: 1.5; }
+.page { max-width: 440px; margin: 0 auto; padding: 16px 16px 40px; display: grid; gap: 12px; }
+.chapeau { font-size: 13px; color: var(--secondaire); margin: 0; }
+.chapeau b { color: var(--texte); font-weight: 600; }
+.etiquette { font-size: 11px; color: var(--secondaire); text-transform: uppercase; letter-spacing: .06em; margin: 0 0 -6px; }
+.onglets { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+.onglets.deux { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.onglet { font: inherit; font-size: 12px; letter-spacing: .04em; min-height: 44px; background: transparent; color: var(--texte); border: 1px solid var(--bordure); cursor: pointer; padding: 2px; }
+.onglet[aria-selected=true] { background: var(--texte); color: var(--fond); border-color: var(--texte); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.tel { width: 100%; max-width: 390px; margin: 0 auto; border: 1px solid var(--separateur); background: var(--fond); display: flex; flex-direction: column; min-height: 700px; position: relative; }
+.entete { padding: 14px 16px 10px; border-bottom: 1px solid var(--separateur); }
+.entete h1 { margin: 0; font-size: 17px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; }
+.recit { flex: 1; padding: 10px 16px; font-size: 15px; }
+.recit .cmd { font-size: 12px; color: var(--secondaire); text-transform: uppercase; letter-spacing: .04em; margin: 0 0 4px; }
+.recit p { margin: 0 0 10px; }
+.dock { border-top: 1px dashed var(--separateur); padding: 6px 16px 10px; display: grid; gap: 6px; }
+.titre-section { display: flex; align-items: center; gap: 8px; margin: 4px 0; font-size: 13px; font-weight: 400; text-transform: uppercase; color: var(--secondaire); }
+.titre-section::before, .titre-section::after { content: ''; border-top: 1px solid currentColor; }
+.titre-section::before { flex: 0 0 16px; }
+.titre-section::after { flex: 0 1 96px; }
+.salle { display: grid; grid-template-columns: 1fr auto; gap: 6px; }
+.aller { font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; min-height: 48px; padding: 6px 10px; background: var(--texte); color: var(--fond); display: flex; align-items: center; }
+.porte { min-height: 48px; width: 96px; border: 1px solid var(--bordure); background: var(--surface); display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+.temoin { width: 8px; height: 8px; border: 1px solid currentColor; background: currentColor; }
+.nav { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 14px 16px 14px; border-top: 1px solid var(--separateur); }
+.nav span { position: relative; border: 1px solid var(--bordure); min-height: 44px; display: flex; align-items: center; justify-content: center; font-size: 12px; letter-spacing: .06em; opacity: .5; }
+.nav span.vif { opacity: 1; }
+.nav span.ouverte { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); opacity: 1; }
+.notif { position: absolute; top: -12px; right: 3px; padding: 0 2px; font-size: 18px; font-weight: 600; line-height: 20px; color: var(--accent); background: var(--fond); animation: notif 1.5s linear infinite; }
+@keyframes notif { 0%, 13.333%, 20%, 33.333%, 100% { opacity: 1; } 6.667%, 26.667% { opacity: .2; } }
+@media (prefers-reduced-motion: reduce) { .notif { animation: none; } }
+
+.fenetre { position: absolute; left: 12px; right: 12px; top: 56px; bottom: 74px; background: var(--fond); border: 1px solid var(--accent); display: flex; flex-direction: column; }
+.fenetre header { padding: 10px 12px; border-bottom: 1px solid var(--separateur); }
+.fenetre h3 { margin: 0; font-size: 15px; color: var(--accent); letter-spacing: .04em; }
+.fenetre header small { font-size: 12px; color: var(--secondaire); }
+.fenetre ol { list-style: none; margin: 0; padding: 10px 12px; display: grid; gap: 12px; overflow: auto; }
+.fenetre li { font-size: 14px; border-left: 2px solid var(--separateur); padding-left: 10px; }
+.fenetre li.neuf { border-left-color: var(--accent); }
+.fenetre li .neuf { font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; display: block; }
+
+.verdict { font-size: 13px; color: var(--secondaire); border-left: 2px solid var(--bordure); padding-left: 10px; margin: 0; }
+.verdict b { color: var(--texte); font-weight: 600; }
+</style>
+
+<div class="page">
+  <p class="chapeau">Face 2 du dé, quand la créature est loin : au lieu du bruit lourd, <b>IA Station</b> parle parfois. Elle nomme une <b>pièce</b> et un <b>système</b>, jamais la menace. Quatre sortes de messages, à garder ou non.</p>
+
+  <p class="etiquette">Sorte de message</p>
+  <div class="onglets" role="tablist" id="sortes"></div>
+
+  <p class="etiquette">Moment</p>
+  <div class="onglets deux" role="tablist" id="moments"></div>
+
+  <div class="tel">
+    <header class="entete"><h1>Coursive A</h1></header>
+    <div class="recit" id="recit"></div>
+    <div class="dock"><h2 class="titre-section">Se déplacer vers</h2>
+      <div class="salle"><span class="aller">→ Cambuse</span><span class="porte"><span class="temoin"></span>Ouverte</span></div></div>
+    <div class="fenetre" id="fenetre" hidden></div>
+    <nav class="nav" id="nav"></nav>
+  </div>
+
+  <p class="verdict" id="verdict"></p>
+</div>
+
+<script>
+const ANCIEN = 'Évacuation conseillée. Une capsule de secours vous attend à bord ; merci de la rejoindre dans le calme.';
+const SORTES = [
+  { nom: 'Porte', message: 'Porte entre la remise et la coursive B : intégrité compromise. Une intervention de maintenance a été planifiée. Merci de votre patience.',
+    verdict: '<b>Porte forcée.</b> Elle signale une porte que la créature a vraiment forcée, plus tôt. Le joueur apprend qu’un passage s’est ouvert, et où. Il faut qu’une porte ait été forcée : ce message est rare.' },
+  { nom: 'Matériel', message: 'Caméra de la remise : liaison perdue. Un technicien sera dépêché dès que possible.',
+    verdict: '<b>Matériel perdu.</b> Une caméra ou le capteur du joueur ne répond plus. Comme pour le capteur (D-353), elle ne dit pas si c’est une panne ou une destruction.' },
+  { nom: 'Passage', message: 'Cambuse : détecteur de présence déclenché, puis rétabli. Aucune action n’est requise.',
+    verdict: '<b>Passage récent.</b> Une pièce où la créature est passée il y a peu. Le joueur sait où elle était, pas où elle va.' },
+  { nom: 'Présence', message: 'Dortoir : obstruction de la ventilation signalée. Merci de ne pas encombrer les bouches d’aération.',
+    verdict: '<b>Présence.</b> Une gêne dans la pièce où elle se trouve en ce moment. C’est le plus précis : le joueur peut en déduire où elle est, s’il fait le lien.' },
+];
+let sorte = 0;
+let moment = 0;
+
+function rendre() {
+  const s = SORTES[sorte];
+  const ouverte = moment === 1;
+  document.getElementById('recit').innerHTML = `<p class="cmd">&gt; attendre</p><p>Vous restez immobile, l’oreille tendue. Rien de nouveau derrière les portes.</p>`;
+  const fenetre = document.getElementById('fenetre');
+  fenetre.hidden = !ouverte;
+  fenetre.innerHTML = `<header><h3>[ IA STATION ]</h3><small>messages reçus dans l’écouteur</small></header>
+    <ol><li class="neuf"><span class="neuf">nouveau</span>«&nbsp;${s.message}&nbsp;»</li><li>«&nbsp;${ANCIEN}&nbsp;»</li></ol>`;
+  document.getElementById('nav').innerHTML = `<span>INVENTAIRE</span><span>CARTE</span><span class="${ouverte ? 'ouverte' : 'vif'}">IA STATION${ouverte ? '' : '<b class="notif" aria-label="Nouveau">!</b>'}</span>`;
+  document.getElementById('verdict').innerHTML = s.verdict;
+  document.getElementById('sortes').innerHTML = SORTES.map((x, i) => `<button class="onglet" role="tab" data-s="${i}" aria-selected="${i === sorte}">${x.nom}</button>`).join('');
+  document.getElementById('moments').innerHTML = ['Le « ! » apparaît', 'On ouvre IA STATION']
+    .map((n, i) => `<button class="onglet" role="tab" data-m="${i}" aria-selected="${i === moment}">${n}</button>`).join('');
+}
+document.getElementById('sortes').addEventListener('click', (ev) => { const v = ev.target.closest('[data-s]')?.dataset.s; if (v !== undefined) { sorte = Number(v); rendre(); } });
+document.getElementById('moments').addEventListener('click', (ev) => { const v = ev.target.closest('[data-m]')?.dataset.m; if (v !== undefined) { moment = Number(v); rendre(); } });
+rendre();
+</script>

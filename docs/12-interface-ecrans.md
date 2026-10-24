@@ -443,6 +443,19 @@ Modale décrite en §3.9. Historique d'exemple :
 
 Ton froid, calme, un peu décalé ; exact sur les systèmes ; ne dit jamais où est la créature (D-046, D-081).
 
+### 4.9 bis Fenêtre du poste de surveillance
+
+> D-356 à D-360, lot 4 de la créature mobile. [Validé sur maquette](maquette/poste.html), variante A ; textes de l'assistant principal, validation sur téléphone à venir.
+
+- **Déverrouillage** : « Utiliser le post-it sur le terminal », le post-it en main, une action, d'un seul toucher, sans CONFIRMER (D-356). Avant, « Se connecter » est refusé et le refus du moteur s'écrit dans le récit, comme tout refus (« Le terminal demande un mot de passe : rien n'a été joué. »).
+- **Ouverture** : « Se connecter au terminal », d'un seul toucher, sans CONFIRMER (D-359) ; le post-it n'a plus besoin d'être en main.
+- **Fenêtre plein cadre**, comme la carte (§3.6), sans flèche vers CARTE. Dialogue nommé « Surveillance » pour le lecteur d'écran. En-tête : « SURVEILLANCE » et « ● DIRECT », qui clignote en 2 s (fixe en mouvement réduit).
+- **Plan** : la station entière, centrée, avec les caméras (14 §2.5). Les pièces n'ouvrent ni fiche ni son. Une liste réservée aux lecteurs d'écran dit « Caméra de la remise : mouvement ».
+- **Journal du bas** (mini-terminal), en `role="log"` et `aria-live="polite"` : monospace vert, chaque ligne précédée de « > », les 4 dernières, la plus récente en bas, sur une hauteur fixe. Seulement les caméras (D-359) : « Mouvement détecté dans la remise. » en `alerte`, « Caméra de la remise : en panne. », « Aucun mouvement. » (une fois jusqu'au prochain changement, jamais sous une caméra au mouvement). Brouillée ou retour au calme : pas de ligne. À la connexion : les caméras déjà au mouvement, sinon « Aucun mouvement. ». Le récit du pas et les messages d'IA Station n'y vont pas : ils restent sur l'écran principal.
+- **Le temps passe tout seul** : une attente ordinaire toutes les 2 secondes, au rythme du repère, tant que la fenêtre est ouverte ; même en mouvement réduit. Pas de bouton ATTENDRE. **QUITTER** (secondaire) ferme sans coût et arrête l'horloge ; Échap fait de même, et le focus revient au récit.
+- **Fermeture d'elle-même** : seulement si la créature entre dans la salle ou s'y montre, si un danger (feu, vide) y est, si la partie finit, ou si le passager n'est plus connecté dans la salle ; le récit montre alors tout. Les autres récits restent dans le récit de l'écran principal, lu en quittant.
+- Pas de son propre à la fenêtre.
+
 ### 4.10 Options
 
 Écran accessible depuis l'accueil (OPTIONS) et depuis le jeu (engrenage). Il regroupe la taille du texte, le signalement de bug, la gestion de la sauvegarde, le son et l'abandon de la partie en cours. [Validé] Rangé en trois sous-menus (#201) : maquette [options-menus](maquette/options-menus.html). [Validé D-287, D-288]

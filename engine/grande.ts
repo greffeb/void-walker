@@ -2,18 +2,19 @@ import { ANNEXES_MIN, pieceAnnexe, poserAnnexes, type AnnexePosee } from './anne
 import { poserBoucles } from './boucles';
 import { poserButin, type ImpasseButin } from './butin';
 import { poserCles, type CleAPoser, type PieceCandidate } from './cles';
+import { generateurDepuisGraine, suivant } from './des';
 import { poserDocuments, type PieceDocument } from './documents';
-import type { CategoriePiece, DefLiaison, DefMonde, DefObjet, DefPiece } from './monde';
+import type { CategoriePiece, DefCamera, DefLiaison, DefMonde, DefObjet, DefPiece } from './monde';
 import { tracerPiste } from './piste';
 import { piecesDeCoque, type RectPlan } from './plan';
 import { prefixer, sousGraine } from './pose';
-import { RYTHME_RENCONTRE } from './rencontre';
+import { entier32, RYTHME_RENCONTRE } from './rencontre';
 import type { DefMorceau, DefStation, DefStationGrande } from './station';
 import { ouvrirTerritoire } from './territoire';
 
 // Grande station (spec 2026-10-18 §6.2) : autour du chemin principal déjà posé, les annexes, puis les portes de boucle, puis la
 // piste de la créature, puis les clés, puis le butin, puis les documents, chacun sur sa sous-graine. Le monde reste un monde
-// ordinaire, revalidé par l'assembleur.
+// ordinaire, revalidé par l'assembleur. Sur une part des stations, une salle de surveillance, un post-it et des caméras (lot 4).
 
 /** Une liaison que la créature peut franchir, au besoin en forçant la porte (D-279) : la piste ne passe que par elles. */
 export function franchissable(liaison: DefLiaison): boolean {
@@ -183,6 +184,47 @@ function facesDe(monde: DefMonde, station: DefStation, segments: ReadonlyMap<str
   );
 }
 
+/** Rang tiré parmi `faces`, à chaque appel, sur le générateur de cette graine. */
+function tireur(graine: number): (faces: number) => number {
+  let alea = generateurDepuisGraine(graine);
+  return (faces) => {
+    const tirage = suivant(alea);
+    alea = tirage.etat;
+    return Math.floor((tirage.valeur / 4294967296) * faces);
+  };
+}
+
+/**
+ * Salle de surveillance (lot 4, §4.3) : une impasse posée, ni dans un segment de capsule ni au repaire, devient la salle, sous
+ * son propre nom d'instance ; son rectangle et sa porte ne changent pas. Une impasse qui justifie une voisine `surCouloirDe` (GE-10)
+ * reste ce qu'elle est. `null` sans candidate.
+ */
+function poserSalle(annexes: readonly AnnexePosee[], salle: DefMorceau, capsules: ReadonlySet<number | undefined>, segments: ReadonlyMap<string, number>, creature: string, graine: number): AnnexePosee[] | null {
+  const accroches = accrochesDe(annexes);
+  const candidates = annexes.filter((posee) => {
+    const declaration = posee.annexe.annexe;
+    const id = pieceAnnexe(posee);
+    const racine = accroches(id).at(-1) ?? id;
+    const justifie = annexes.some((autre) => autre.accroche === posee.accroche && declaration?.etiquettes.includes(autre.annexe.annexe?.surCouloirDe ?? '') === true);
+    return declaration?.forme === 'impasse' && id !== creature && !capsules.has(segments.get(racine)) && !justifie;
+  });
+  const choisie = candidates[tireur(sousGraine(graine, 'surveillance'))(candidates.length)];
+  if (choisie === undefined) return null;
+  // 'a3-couchettes' devient 'a3-surveillance' : les contrôles retrouvent la salle par son nom d'instance.
+  const instance = `${choisie.instance.slice(0, choisie.instance.indexOf('-'))}-${salle.id.replace(/^a-/, '')}`;
+  return annexes.map((posee) => (posee === choisie ? { ...posee, annexe: salle, instance } : posee));
+}
+
+/** Caméras (lot 4, §4.3) : un tiers des pièces tirées, dont le premier tiers tiré en panne, dans l'ordre du monde. */
+function poserCameras(pieces: readonly string[], graine: number): DefCamera[] {
+  const tirer = tireur(graine);
+  const restantes = [...pieces];
+  const tirees: string[] = [];
+  while (tirees.length < Math.round(pieces.length / 3)) tirees.push(...restantes.splice(tirer(restantes.length), 1));
+  const hs = new Set(tirees.slice(0, Math.round(tirees.length / 3)));
+  return pieces.filter((piece) => tirees.includes(piece)).map((piece) => (hs.has(piece) ? { piece, hs: true } : { piece }));
+}
+
 /**
  * Monde du chemin principal étendu ; `null` si les annexes ne tiennent pas, si aucune porte de boucle ne se pose (D-318), si,
  * avec des documents, une pièce du catalogue ne porte rien même à six annexes (§7.3), ou si le monde compte moins de
@@ -212,8 +254,15 @@ function etendreUneFois(monde: DefMonde, station: DefStation, grande: DefStation
     morceaux.flatMap((morceau) => Object.entries(morceau.grande?.accueillantes ?? {}).map(([piece, categorie]) => [prefixer(morceau.id, piece), categorie] as const)),
   );
 
-  const annexes = poserAnnexes(principales, compterPortes(monde.liaisons), accueillantes, new Set(piecesDeCoque(monde)), grande.catalogue, grande.annexes, sousGraine(graine, 'annexes'), segments, monde.liaisons.map((liaison) => liaison.entre), creature);
-  if (annexes === null) return null;
+  const posees = poserAnnexes(principales, compterPortes(monde.liaisons), accueillantes, new Set(piecesDeCoque(monde)), grande.catalogue, grande.annexes, sousGraine(graine, 'annexes'), segments, monde.liaisons.map((liaison) => liaison.entre), creature);
+  if (posees === null) return null;
+  // Salle de surveillance (lot 4) : tirée juste après les annexes ; clés, butin et documents lisent ensuite ses étiquettes vides.
+  // La part se tire sur l'identifiant de la station, pas sur la graine seule : les stations publiées partagent peu de graines (0
+  // et 1 en font plus d'un tiers), et un tirage par graine les mettrait toutes ensemble d'un côté de la part.
+  const { surveillance } = grande;
+  const capsules = new Set(monde.objets.flatMap((objet) => (objet.capsule === undefined ? [] : [segments.get(objet.piece)])));
+  const annexes = (surveillance !== undefined && entier32(`surveillance:${station.id}`) / 2 ** 32 < surveillance.part ? poserSalle(posees, surveillance.salle, capsules, segments, creature, graine) : null) ?? posees;
+  const salle = annexes.find((posee) => posee.annexe === surveillance?.salle);
   const piecesAnnexes = annexes.map((posee): DefPiece => {
     const declaration = posee.annexe.annexe;
     const piece = posee.annexe.pieces[0];
@@ -255,7 +304,17 @@ function etendreUneFois(monde: DefMonde, station: DefStation, grande: DefStation
     grande.etendue ?? 0,
     sousGraine(graine, 'territoire'),
   );
-  const objets = disperserCles(monde, station, annexes, segments, toutes);
+  const cles = disperserCles(monde, station, annexes, segments, toutes);
+  // Post-it du mot de passe (lot 4) : dans une annexe sans clé, ni la salle, ni le repaire, ni un segment de capsule ; ajouté avant
+  // le butin, son impasse ne devient pas une salle de butin. Sans place pour lui, pas de salle.
+  const surveillee: DefObjet[] = [];
+  if (salle !== undefined) {
+    const places = annexes.map(pieceAnnexe).filter((id) => id !== pieceAnnexe(salle) && id !== creature && !capsules.has(segments.get(id)) && !cles.some((objet) => objet.piece === id));
+    const place = places[tireur(sousGraine(graine, 'post-it'))(places.length)];
+    if (place === undefined) return etendreUneFois(monde, station, { ...grande, surveillance: undefined });
+    surveillee.push(...salle.annexe.objets.map((objet) => ({ ...objet, piece: pieceAnnexe(salle) })), { id: 'o-post-it', nom: 'cat_post_it', piece: place, portable: true });
+  }
+  const objets = [...cles, ...surveillee];
 
   // Butin (spec §6.6) : seulement si le contenu donne une table ; jamais dans une impasse qui garde déjà une clé.
   const accroches = accrochesDe(annexes);
@@ -304,6 +363,7 @@ function etendreUneFois(monde: DefMonde, station: DefStation, grande: DefStation
     grande.documents === undefined ? [] : poserDocuments(grande.documents, piecesDocuments, clesDeplacees, trousse, new Set(morceaux.map((morceau) => morceau.id)), monde.depart, sousGraine(graine, 'documents'));
   for (const pose of documents) portent.add(pose.piece);
 
+  const cameras = salle === undefined ? undefined : poserCameras(dessinees.map((piece) => piece.id).filter((id) => id !== pieceAnnexe(salle)), sousGraine(graine, 'cameras'));
   const marquer = (piece: DefPiece): DefPiece => {
     const trace = piste.get(piece.id);
     const segment = segments.get(piece.id);
@@ -322,6 +382,7 @@ function etendreUneFois(monde: DefMonde, station: DefStation, grande: DefStation
       boucles: liaisonsBoucles.map((liaison) => liaison.id),
       bruitsStation: true,
       rencontre: { rythme: RYTHME_RENCONTRE },
+      ...(cameras === undefined ? {} : { cameras }),
     },
     couvert: grande.documents === undefined || [...catalogue].every((piece) => portent.has(piece)),
   };

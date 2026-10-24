@@ -39,7 +39,10 @@ function distances(depart: string, aretes: readonly (readonly [string, string])[
 export function carte(monde: DefMonde, etat: EtatPartie): CartePublique {
   const sousPositions = new Set(monde.pieces.filter((piece) => piece.sousPosition === true).map((piece) => piece.id));
   const ici = pieceDeCarte(monde, etat.piece);
-  const visitees = monde.pieces.filter((piece) => !sousPositions.has(piece.id) && (piece.id === ici || etat.visitees.includes(piece.id))).map((piece) => piece.id);
+  // Connecté au terminal, le passager a vu le plan de toute la station (lot 4) : tout se dessine, mais une pièce jamais visitée reste connue.
+  const visitees = monde.pieces
+    .filter((piece) => !sousPositions.has(piece.id) && (piece.id === ici || etat.connecte === true || etat.visitees.includes(piece.id)))
+    .map((piece) => piece.id);
   // Passages perçus depuis une pièce visitée (14 §3.3) ; ceux d'une sous-position ne se dessinent jamais.
   const vus = monde.liaisons.flatMap((liaison) => {
     if (liaison.entre.some((piece) => sousPositions.has(piece))) return [];
@@ -83,7 +86,7 @@ export function carte(monde: DefMonde, etat: EtatPartie): CartePublique {
     .filter((piece) => connues.has(piece.id))
     .map((piece): PieceCarte => {
       const souvenir = etat.memoire.pieces[piece.id];
-      const statut: StatutPiece = piece.id === ici ? 'actuelle' : visitees.includes(piece.id) ? 'visitee' : 'connue';
+      const statut: StatutPiece = piece.id === ici ? 'actuelle' : etat.visitees.includes(piece.id) ? 'visitee' : 'connue';
       return {
         piece: refPiece(monde, piece.id),
         statut,

@@ -6,7 +6,7 @@ import { MESSAGES_M10 } from './m-10/textes';
 import { MORCEAUX } from './morceaux';
 import type { TextesMorceau } from './textes/types';
 
-export { CATALOGUE_PIECES, PIECES_CATALOGUE, TABLE_BUTIN, TEXTES_CATALOGUE } from './catalogue';
+export { CATALOGUE_PIECES, PIECES_CATALOGUE, SALLE_SURVEILLANCE, TABLE_BUTIN, TEXTES_CATALOGUE } from './catalogue';
 export { MORCEAUX, type EntreeMorceau } from './morceaux';
 export {
   COMPOSITIONS_CONTROLEES,
@@ -88,6 +88,8 @@ export {
   ROLES_PASSAGE,
   ROLES_PASSAGE_SANS_DESTINATION,
   ROLES_SAVOIR,
+  ROLES_SIGNE_PIECE,
+  ROLES_SIGNE_PORTE,
   TYPES_AGGRAVATION,
   type CleEvacuation,
   type CleMoment,

@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import { observer, type DefMonde, type IdAction, type OptionMenu } from '../engine';
-import { libelleOption, MONDES, texteDocument, VERSION_GENERATEUR, type DocumentRendu, type EntreeMonde, type EtapeParcours, type Nom, type TexteDocument, type TextesMonde } from '../content';
+import { carte, observer, type DefMonde, type IdAction, type OptionMenu } from '../engine';
+import { ficheDe, libelleOption, MONDES, rendreListeCarte, TEXTES_CATALOGUE, texteDocument, VERSION_GENERATEUR, type DocumentRendu, type EntreeMonde, type EtapeParcours, type Nom, type TexteDocument, type TextesMonde } from '../content';
 import { App, EcranRefus } from './App';
 import { FicheDocument } from './bulle';
 import { CATALOGUE } from './catalogue';
@@ -9,7 +9,7 @@ import { EcranFin } from './EcranFin';
 import { APERCU_TAILLE, EcranOptions, GUIDES_INSTALLATION } from './EcranOptions';
 import { composerDock, etapeBulle, libelleLigne, unToucher, type Groupe } from './ecran';
 import { marquerEcrit } from './ecriture';
-import { commencer, consulter, consulterDocument, historiqueAffiche, jouerOption, prevoir, recitDeFin, type Environnement, type Jeu } from './jeu';
+import { commencer, consulter, consulterDocument, fermerPoste, historiqueAffiche, jouerOption, prevoir, recitDeFin, type Environnement, type Jeu } from './jeu';
 import type { EtatInstallation, Installation } from './installation';
 import type { EtatMiseAJour, MiseAJour } from './miseAJour';
 import { PanneauRapport, RETOURS, rapportPris } from './PanneauRapport';
@@ -1095,6 +1095,142 @@ describe('CARTE : « ! » du capteur (créature mobile lot 3)', () => {
     expect(navCarte(rendre(jeu, undefined, true, [], true))).toContain('aria-label="Carte, nouveau signal du capteur"');
     expect(navCarte(rendre(jeu))).not.toContain('notification-carte');
     expect(navCarte(rendre(jeu))).toContain('aria-label="Carte"');
+  });
+});
+
+describe('poste de surveillance : fenêtre en direct, refus et messages d’IA Station (lot 4)', () => {
+  // Le monde de test, avec un terminal et son post-it dans la cabine, des caméras dans l'atelier et la soute, et la rencontre.
+  const POSTE: DefMonde = {
+    ...monde,
+    id: 'monde-poste',
+    rencontre: { rythme: 1 },
+    objets: [
+      ...monde.objets,
+      { id: 'objet-terminal', nom: 'cat_terminal', piece: 'piece-cabine', portable: false, terminal: true, exige: 'objet-post-it' },
+      { id: 'objet-post-it', nom: 'cat_post_it', piece: 'piece-cabine' },
+    ],
+    cameras: [{ piece: 'piece-atelier' }, { piece: 'piece-soute' }],
+  };
+  const catalogue = (cle: string) => ({ noms: TEXTES_CATALOGUE.noms[cle]!, descriptions: TEXTES_CATALOGUE.descriptions[cle]! });
+  const TEXTES_POSTE: TextesMonde = {
+    ...textes,
+    noms: { ...textes.noms, cat_terminal: catalogue('cat_terminal').noms, cat_post_it: catalogue('cat_post_it').noms },
+    descriptions: { ...textes.descriptions, cat_terminal: catalogue('cat_terminal').descriptions, cat_post_it: catalogue('cat_post_it').descriptions },
+  };
+  let graine = 0;
+  const envPoste: Environnement = { ...env, monde: POSTE, textes: TEXTES_POSTE, stockage: memoire(), graine: () => graine };
+  const jouerAction = (jeu: Jeu, action: IdAction, disponible = true, cible?: string): Promise<Jeu> => {
+    const option = observer(POSTE, jeu.partie.etat).menu.find(
+      (choix) => choix.action === action && choix.disponible === disponible && (cible === undefined || choix.cible.nom === cible),
+    );
+    if (option === undefined) throw new Error(`Option ${action} absente.`);
+    return jouerOption(envPoste, jeu, option);
+  };
+  const rendrePoste = (jeu: Jeu): string =>
+    renderToStaticMarkup(<EcranJeu jeu={jeu} lus={[]} env={envPoste} machineAEcrire={false} occupe={false} choisir={rien} lireMessages={rienALire} />);
+  const ferme = (jeu: Jeu): boolean => fermerPoste(observer(POSTE, jeu.partie.etat), jeu.partie.derniers);
+  /** Le post-it pris et utilisé sur le terminal (D-356), puis la connexion, sur la graine en cours. */
+  const connecterSur = async (): Promise<Jeu> =>
+    jouerAction(await jouerAction(await jouerAction(await commencer(envPoste), 'prendre', true, 'cat_post_it'), 'deverrouiller'), 'surveiller');
+  /** Connecté au terminal, sur la première graine où la créature n'est pas déjà dans la salle. */
+  const connecte = async (): Promise<Jeu> => {
+    for (graine = 0; graine < 50; graine++) {
+      const jeu = await connecterSur();
+      if (!ferme(jeu)) return jeu;
+    }
+    throw new Error('Aucune connexion calme.');
+  };
+
+  it('sans le post-it, le terminal se refuse comme le lecteur de carte, et rien ne s’ouvre', async () => {
+    const debut = await commencer(envPoste);
+    const refus = await jouerAction(debut, 'surveiller', false);
+    expect(refus.partie).toBe(debut.partie);
+    const html = rendrePoste(refus);
+    expect(texte(html)).toContain('Le terminal demande un mot de passe : rien n’a été joué.');
+    expect(html).not.toContain('aria-label="Surveillance"');
+    // Rien ne souffle qu'un post-it existe avant de l'avoir trouvé (D-356).
+    expect(observer(POSTE, debut.partie.etat).menu.some((option) => option.action === 'deverrouiller')).toBe(false);
+  });
+
+  it('le post-it sur le terminal : un seul toucher, sans CONFIRMER (D-356)', async () => {
+    const debut = await jouerAction(await commencer(envPoste), 'prendre', true, 'cat_post_it');
+    const option = observer(POSTE, debut.partie.etat).menu.find((choix) => choix.action === 'deverrouiller');
+    expect(option?.disponible).toBe(true);
+    expect(unToucher(POSTE, debut.partie, option!)).toBe(true);
+  });
+
+  it('« Se connecter » : un seul toucher, sans CONFIRMER (D-359)', async () => {
+    const debut = await jouerAction(await jouerAction(await commencer(envPoste), 'prendre', true, 'cat_post_it'), 'deverrouiller');
+    const option = observer(POSTE, debut.partie.etat).menu.find((choix) => choix.action === 'surveiller');
+    expect(option?.disponible).toBe(true);
+    expect(unToucher(POSTE, debut.partie, option!)).toBe(true);
+  });
+
+  it('régression : la fenêtre s’ouvre dès la connexion, même quand le pas raconte aussi une écoute ou un signe (D-359)', async () => {
+    let bruyantes = 0;
+    for (graine = 0; graine < 30; graine++) {
+      const jeu = await connecterSur();
+      if (jeu.partie.etat.creature?.piece === 'piece-cabine') continue;
+      if (jeu.partie.derniers.some(({ type }) => type !== 'terminal_connecte')) bruyantes++;
+      expect(rendrePoste(jeu)).toContain('aria-label="Surveillance"');
+    }
+    // L'ancienne règle fermait la fenêtre sur ces connexions-là : il fallait se reconnecter.
+    expect(bruyantes).toBeGreaterThan(0);
+  });
+
+  it('après la connexion, la fenêtre est ouverte, avec ses deux caméras en mots', async () => {
+    const jeu = await connecte();
+    const html = rendrePoste(jeu);
+    expect(html).toContain('aria-label="Surveillance"');
+    expect(html).toContain('<li>Caméra de l’atelier : calme</li>');
+    expect(html).toContain('<li>Caméra de la soute : mouvement</li>');
+    // Le journal ne dit que les caméras : ni le récit du pas, ni IA Station (D-359).
+    expect(entre(html, '<ol class="poste-journal"', '</ol>')).toContain('<li class="alerte">Mouvement détecté dans la soute.</li>');
+    for (const phrase of [...jeu.recit, ...jeu.assistance]) expect(entre(html, '<ol class="poste-journal"', '</ol>')).not.toContain(phrase);
+  });
+
+  it('après la connexion, une pièce jamais visitée est connue : ni « vu à l’instant », ni « aucun objet », ni rangée parmi les visitées', async () => {
+    const jeu = await connecte();
+    const plan = carte(POSTE, jeu.partie.etat);
+    // L'atelier, jamais visité, contient la trousse : la carte n'en dit rien.
+    const atelier = plan.pieces.find((piece) => piece.piece.nom === 'atelier');
+    expect(atelier?.statut).toBe('connue');
+    expect(atelier?.regard).toBeNull();
+    const fiche = ficheDe(TEXTES_POSTE, atelier!);
+    expect(fiche.objets).toBeNull();
+    expect(fiche.sousTitre).toBe('pas encore visitée');
+    const blocs = rendreListeCarte(TEXTES_POSTE, plan);
+    expect(blocs[1]!.entrees.map((entree) => entree.titre)).not.toContain('ATELIER');
+    expect(blocs[2]!.entrees.map((entree) => entree.titre)).toContain('ATELIER');
+  });
+
+  it('la créature entre dans la salle : la fenêtre se ferme, le récit montre l’entrée en rouge (Review Focus 1)', async () => {
+    const jeu = await connecte();
+    // Un pas calme dans la salle garde la fenêtre ouverte.
+    expect(ferme(jeu)).toBe(false);
+    // La porte de l'atelier ouverte, la créature dans l'atelier : elle finit par entrer dans la cabine.
+    let courant: Jeu = {
+      ...jeu,
+      partie: { ...jeu.partie, etat: { ...jeu.partie.etat, liaisons: { ...jeu.partie.etat.liaisons, 'liaison-cabine-atelier': true }, creature: { ...jeu.partie.etat.creature!, piece: 'piece-atelier' } } },
+    };
+    for (let pas = 0; pas < 20 && courant.partie.etat.creature?.piece !== 'piece-cabine'; pas++) courant = await jouerAction(courant, 'attendre');
+    expect(courant.partie.etat.creature?.piece).toBe('piece-cabine');
+    expect(ferme(courant)).toBe(true);
+    const html = rendrePoste(courant);
+    expect(html).not.toContain('aria-label="Surveillance"');
+    expect(texte(html)).toContain('par la porte de l’atelier.');
+    expect(entre(html, '<section class="recit', '</section>')).toContain('alerte');
+    expect(courant.alertes.length).toBeGreaterThan(0);
+  });
+
+  it('ModaleIA : un signe de présence nomme la pièce, en cours de route', async () => {
+    const jeu = await connecte();
+    const partie = { ...jeu.partie, etat: { ...jeu.partie.etat, messages: ['signe-1'], signes: [{ sorte: 'presence' as const, piece: 'piece-atelier', action: 2 }] } };
+    const messages = historiqueAffiche(envPoste, partie);
+    expect(messages).toHaveLength(1);
+    expect(messages[0]!.repere).toBe('en cours de route');
+    expect(messages[0]!.texte).toMatch(/^Atelier : /);
+    expect(texte(renderToStaticMarkup(<ModaleIA messages={messages} nouveaux={[]} fermer={rienAJouer} />))).toContain(messages[0]!.texte);
   });
 });
 

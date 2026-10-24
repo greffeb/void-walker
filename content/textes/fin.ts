@@ -162,7 +162,9 @@ function relever(textes: TextesMonde, etapes: readonly (readonly Evenement[])[])
       // Un bip ou une pose qui lit un mouvement compte comme une créature perçue (créature mobile lot 3, D-351).
       const ecouteNette = evenement.type === 'ecoute' && (evenement.entendu === 'net' || evenement.entendu === 'toujours');
       const capteurEnMouvement = (evenement.type === 'capteur' || evenement.type === 'capteur_pose') && evenement.etat === 'mouvement';
-      if (PERCUE.has(evenement.type) || ecouteNette || capteurEnMouvement) percue = true;
+      // Un message d'IA Station sur un fait vrai compte comme un signe perçu, comme le bruit lointain qu'il remplace (lot 4).
+      const signe = evenement.type === 'assistance' && evenement.signe !== undefined;
+      if (PERCUE.has(evenement.type) || ecouteNette || capteurEnMouvement || signe) percue = true;
       const defait = DEFAIT[evenement.type];
       if (defait !== undefined) {
         const sujet = sujetDefait(evenement);

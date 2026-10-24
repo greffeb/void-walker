@@ -15,8 +15,10 @@ import {
   type ResultatApercu,
 } from '../engine';
 import {
+  former,
   libelleOption,
   lignesListeCarte,
+  nomDe,
   raconter,
   raconterDerniers,
   raconterFin,
@@ -63,6 +65,8 @@ export const AIDE = [
   '  carte                        Relire la carte : ici, pièces visitées et connues (gratuit).',
   '  apercu <numéro>              Voir le risque, le coût et ce que vous savez avant d’agir (gratuit).',
   '  jouer <numéro>               Choisir une action du menu par son numéro.',
+  '  deverrouiller [terminal]     Utiliser le post-it sur le terminal de la pièce, comme l’action du menu.',
+  '  surveiller [terminal]        Se connecter au terminal de la pièce, comme l’action du menu.',
   '  commande <action> <cible> [paramètre]   Envoyer une commande brute ; identifiants visibles avec « voir --ids ».',
   '  exporter <fichier> [--commentaire "texte"]   Exporter la partie pour la rejouer.',
   '  aide                         Afficher cette aide.',
@@ -170,8 +174,17 @@ export function afficherFin(monde: DefMonde, textes: TextesMonde, partie: Partie
   ];
 }
 
+/** État d'une caméra en mots, les mêmes que la fenêtre du poste de l'appli (lot 4, app/libelles : poste.etats). */
+const ETATS_CAMERA = { calme: 'calme', mouvement: 'mouvement', brouille: 'brouillée', hs: 'plus de signal' } as const;
+
+/** Connecté dans la salle de surveillance : les caméras en direct, une ligne chacune, comme l'appli les fait lire (lot 4). */
+function afficherCameras(textes: TextesMonde, observation: Observation): string[] {
+  if (observation.cameras === undefined) return [];
+  return ['Caméras en direct :', ...observation.cameras.map(({ piece, etat }) => `  Caméra ${former('de', nomDe(textes, piece))} : ${ETATS_CAMERA[etat]}`), ''];
+}
+
 export function afficherSituation(textes: TextesMonde, observation: Observation, avecIds = false): string[] {
-  const lignes = ['', ...rendreObservation(textes, observation), ''];
+  const lignes = ['', ...rendreObservation(textes, observation), '', ...afficherCameras(textes, observation)];
   if (observation.terminee) lignes.push('Partie terminée : plus aucune action possible.');
   else lignes.push('Actions :');
   observation.menu.forEach((option, index) => {
@@ -295,6 +308,15 @@ export function executer(argv: readonly string[], contexte: Contexte): Sortie {
       if (typeof partie === 'string') return { lignes: [partie], code: 1 };
       const [action = '', cible = '', parametre] = reste;
       return suite(contexte, chemin, jouer(monde, partie, { action, cible, ...(parametre === undefined ? {} : { parametre }) }));
+    }
+    case 'deverrouiller':
+    case 'surveiller': {
+      // Raccourcis des actions du menu (lot 4), refusées sans le post-it comme par leur numéro ; « terminal » est facultatif : un seul par station.
+      const partie = charger(contexte, chemin);
+      if (typeof partie === 'string') return { lignes: [partie], code: 1 };
+      const option = observer(monde, partie.etat).menu.find((choix) => choix.action === commande);
+      if (option === undefined) return { lignes: [commande === 'surveiller' ? 'Aucun terminal ici.' : 'Aucun terminal à déverrouiller ici.'], code: 1 };
+      return suite(contexte, chemin, jouer(monde, partie, option.commande));
     }
     case 'exporter': {
       const partie = charger(contexte, chemin);

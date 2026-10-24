@@ -10,7 +10,7 @@ import {
   SAVOIR_MORCEAUX,
   VERBES_MORCEAUX,
 } from '../textes/morceaux';
-import { ATTENTE_ECOUTE, ATTENTE_VACARME, BRUITS_STATION, FIN, PILLAGES, POSE_POSITION, POSER_A_POSITION, SUPPORTS, TEXTES_CAPTEUR, TEXTES_ECOUTE, TEXTES_POSE_CAPTEUR, TRACES } from '../textes/couches';
+import { ATTENTE_ECOUTE, ATTENTE_VACARME, BRUITS_STATION, CONNEXION_TERMINAL, DEVERROUILLAGE_TERMINAL, FIN, PILLAGES, POSE_POSITION, POSER_A_POSITION, SIGNES_IA, SUPPORTS, TEXTES_CAPTEUR, TEXTES_ECOUTE, TEXTES_POSE_CAPTEUR, TRACES } from '../textes/couches';
 import { ATTENTES_LONGUES } from '../textes/univers';
 import { MENACE } from '../textes/menace';
 import type { TextesMonde } from '../textes/types';
@@ -122,6 +122,8 @@ export const TEXTES_AR01: TextesMonde = {
   evenements: {
     bruit_station: BRUITS_STATION,
     objet_pose_position: POSE_POSITION,
+    terminal_deverrouille: DEVERROUILLAGE_TERMINAL,
+    terminal_connecte: CONNEXION_TERMINAL,
     reveil: [
       'Le siège se redresse sans prévenir. Vous êtes dans {le:piece}. Au plafond, les flèches d’embarquement sont rouges. Votre terminal de transit affiche : CONFINEMENT EN COURS.',
       'Vous vous réveillez d’un coup, sanglé à votre siège, dans {le:piece}. Les flèches d’embarquement brillent en rouge. Votre terminal de transit affiche : CONFINEMENT EN COURS.',
@@ -390,6 +392,7 @@ traces_fraiches: ['Au sol, une traînée encore humide : quelque chose est pass�
     momentArrivee: 'en arrivant · {Nom:piece}',
     momentEvacuation: 'au départ de la capsule',
     momentPatience: 'en attendant',
+    momentSigne: 'en cours de route',
     ...OBSERVATION_MORCEAUX,
   },
   fin: FIN,
@@ -398,6 +401,7 @@ traces_fraiches: ['Au sol, une traînée encore humide : quelque chose est pass�
   attenteEcoute: ATTENTE_ECOUTE,
   capteur: TEXTES_CAPTEUR,
   capteurPose: TEXTES_POSE_CAPTEUR,
+  signesIA: SIGNES_IA,
   attenteVacarme: ATTENTE_VACARME,
   pillages: PILLAGES,
   documents: {},

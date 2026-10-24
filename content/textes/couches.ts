@@ -70,6 +70,11 @@ export const TEXTES_POSE_CAPTEUR: TextesMonde['capteurPose'] = reunir([]).capteu
 /** Phrases d'attente dans le vacarme des machines (#251), reprises par les mondes écrits en entier. */
 export const ATTENTE_VACARME: TextesMonde['attenteVacarme'] = reunir([]).attenteVacarme;
 
+/** Connexion au terminal et messages d'IA Station de la couche univers (lot 4), repris par les mondes écrits en entier, sans salle de surveillance. */
+export const CONNEXION_TERMINAL: TextesMonde['evenements']['terminal_connecte'] = reunir([]).evenements.terminal_connecte;
+export const DEVERROUILLAGE_TERMINAL: TextesMonde['evenements']['terminal_deverrouille'] = reunir([]).evenements.terminal_deverrouille;
+export const SIGNES_IA: TextesMonde['signesIA'] = reunir([]).signesIA;
+
 /** Phrases de pillage de la couche univers (spec 2026-10-18 §6.6), reprises par les mondes écrits en entier, qui n’en montrent jamais. */
 export const PILLAGES: TextesMonde['pillages'] = reunir([]).pillages;
 

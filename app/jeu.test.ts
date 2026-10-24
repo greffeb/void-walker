@@ -1,15 +1,17 @@
 import { IDBFactory } from 'fake-indexeddb';
-import { assemblerStation, empreinteEtat, lireExport, observer, rejouer, type DefMonde } from '../engine';
+import { assemblerStation, empreinteEtat, lireExport, nouvellePartie, observer, rejouer, type DefMonde } from '../engine';
 import { alertesMenace, creerCatalogue, dangersDuRecit, MONDES, numeroter, PAIRES, type EntreeMonde } from '../content';
 import { CATALOGUE } from './catalogue';
 import {
   abandonner,
+  camerasChangees,
   carteANouveau,
   charger,
   cleStockage,
   commencer,
   demandeDe,
   demarrer,
+  fermerPoste,
   fichierPartie,
   historiqueAffiche,
   jouerOption,
@@ -776,5 +778,42 @@ describe('« ! » sur CARTE (créature mobile lot 3)', () => {
     expect(carteANouveau(false, [{ type: 'capteur', etat: 'hs' }])).toBe(true);
     expect(carteANouveau(false, [{ type: 'capteur_pose', objet: { sorte: 'objet', id: 'c', nom: 'capteur' }, piece: { sorte: 'piece', id: 'p', nom: 'pièce' }, etat: 'calme' }])).toBe(false);
     expect(carteANouveau(true, [])).toBe(true);
+  });
+});
+
+describe('fenêtre du poste : caméras changées et fermeture (lot 4)', () => {
+  const remise = { sorte: 'piece', id: 'e-remise', nom: 'remise' } as const;
+  const machines = { sorte: 'piece', id: 'e-machines', nom: 'machines' } as const;
+
+  it('camerasChangees : seule la remise, passée de calme à mouvement ; sans avant, ce qui n’est pas calme', () => {
+    const avant = [{ piece: remise, etat: 'calme' as const }, { piece: machines, etat: 'brouille' as const }];
+    const apres = [{ piece: remise, etat: 'mouvement' as const }, { piece: machines, etat: 'brouille' as const }];
+    expect(camerasChangees(avant, apres)).toEqual([{ piece: remise, etat: 'mouvement' }]);
+    expect(camerasChangees(apres, apres)).toEqual([]);
+    expect(camerasChangees(undefined, avant)).toEqual([{ piece: machines, etat: 'brouille' }]);
+    expect(camerasChangees(avant, undefined)).toEqual([]);
+  });
+
+  const porte = { sorte: 'passage', id: 'p-x', nom: 'porte', ouvert: false, vers: null, signale: true, feu: false, huile: false, vide: false, gouffre: false } as const;
+
+  const dansLaSalle = () => ({ ...observer(monde, nouvellePartie(monde, { version: 'v-test', graine: 1 }).etat), cameras: [{ piece: remise, etat: 'calme' as const }] });
+
+  it('fermerPoste : vraie sans caméras, à la fin, sur un danger dans la salle, quand la créature y entre ou s’y montre (D-359)', () => {
+    const observation = observer(monde, nouvellePartie(monde, { version: 'v-test', graine: 1 }).etat);
+    expect(fermerPoste(observation, [{ type: 'attente' }])).toBe(true);
+    expect(fermerPoste({ ...dansLaSalle(), terminee: true }, [{ type: 'attente' }])).toBe(true);
+    expect(fermerPoste({ ...dansLaSalle(), feu: true }, [{ type: 'attente' }])).toBe(true);
+    expect(fermerPoste({ ...dansLaSalle(), sansAir: true }, [{ type: 'attente' }])).toBe(true);
+    expect(fermerPoste({ ...dansLaSalle(), creatureVisible: true }, [{ type: 'attente' }])).toBe(true);
+    expect(fermerPoste(dansLaSalle(), [{ type: 'attente' }, { type: 'creature_entre', passage: porte }])).toBe(true);
+  });
+
+  it('fermerPoste : écoute, porte secouée, message ou connexion bruyante → reste ouverte, le récit va sur la ligne du bas (D-359)', () => {
+    expect(fermerPoste(dansLaSalle(), [{ type: 'attente' }])).toBe(false);
+    expect(fermerPoste(dansLaSalle(), [{ type: 'attente', vacarme: true }])).toBe(false);
+    expect(fermerPoste(dansLaSalle(), [{ type: 'attente' }, { type: 'ecoute', passage: porte, entendu: 'net' }])).toBe(false);
+    expect(fermerPoste(dansLaSalle(), [{ type: 'attente' }, { type: 'porte_secouee', passage: porte }])).toBe(false);
+    expect(fermerPoste(dansLaSalle(), [{ type: 'assistance', message: 'm-x' }])).toBe(false);
+    expect(fermerPoste(dansLaSalle(), [{ type: 'terminal_connecte' }, { type: 'ecoute', passage: porte, entendu: 'vague' }])).toBe(false);
   });
 });

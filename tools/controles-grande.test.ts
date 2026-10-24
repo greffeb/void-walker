@@ -665,3 +665,57 @@ describe('contrôles structurels des grandes stations (spec 2026-10-18 §7.3)', 
     expect(controlees).toBeGreaterThanOrEqual(400);
   }, 300_000);
 });
+
+describe('contrôles de la salle de surveillance (créature mobile lot 4)', () => {
+  const terminalDe = ({ entree }: Construite): DefObjet | undefined => entree.monde.objets.find((objet) => objet.terminal === true);
+  /** Stations construites avec une salle, chaîne et ordre libre mêlés. */
+  const avecSalle = (nombre: number): Construite[] => {
+    const trouvees: Construite[] = [];
+    for (const composition of CATALOGUE.grandes.filter((candidate, rang) => candidate.refus === null && rang % 23 === 0)) {
+      for (let graine = 0; graine < 30 && trouvees.length < nombre; graine++) {
+        const construite = construire(composition.id, graine);
+        if (construite !== null && terminalDe(construite) !== undefined) {
+          trouvees.push(construite);
+          break;
+        }
+      }
+    }
+    return trouvees;
+  };
+  const SALLES = avecSalle(8);
+
+  it('des stations avec salle, terminal, post-it et caméras passent tous les contrôles', () => {
+    expect(SALLES.length).toBe(8);
+    for (const construite of SALLES) {
+      expect(construite.entree.monde.objets.some((objet) => objet.id === 'o-post-it'), construite.station.id).toBe(true);
+      expect(construite.entree.monde.cameras?.length ?? 0, construite.station.id).toBeGreaterThan(0);
+      expect(controlerGrande(construite.entree, construite.station), construite.station.id).toEqual([]);
+    }
+  }, 120_000);
+
+  it('un post-it dans la salle, ou sans terminal, est signalé', () => {
+    const construite = SALLES[0]!;
+    const salle = terminalDe(construite)!.piece;
+    const dansLaSalle = modifier(construite, (monde) => deplacer(monde, 'o-post-it', salle));
+    expect(controlerGrande(dansLaSalle.entree, dansLaSalle.station).some((ecart) => /post-it/i.test(ecart))).toBe(true);
+    const seul = modifier(construite, (monde) => ({ ...sans(monde, 'o-terminal'), cameras: undefined }));
+    expect(controlerGrande(seul.entree, seul.station).some((ecart) => /post-it/i.test(ecart))).toBe(true);
+  });
+
+  it('un terminal hors d’une impasse du catalogue est signalé', () => {
+    const construite = SALLES[0]!;
+    const ailleurs = modifier(construite, (monde) => deplacer(monde, 'o-terminal', monde.depart));
+    expect(controlerGrande(ailleurs.entree, ailleurs.station).some((ecart) => /terminal/i.test(ecart))).toBe(true);
+  });
+
+  it('des caméras trop peu nombreuses, sans panne, ou sans terminal sont signalées', () => {
+    const construite = SALLES[0]!;
+    const cameras = construite.entree.monde.cameras ?? [];
+    const peu = modifier(construite, (monde) => ({ ...monde, cameras: cameras.slice(0, 2) }));
+    expect(controlerGrande(peu.entree, peu.station).some((ecart) => /caméras/i.test(ecart))).toBe(true);
+    const sansPanne = modifier(construite, (monde) => ({ ...monde, cameras: cameras.map((camera) => ({ piece: camera.piece })) }));
+    expect(controlerGrande(sansPanne.entree, sansPanne.station).some((ecart) => /panne/i.test(ecart))).toBe(true);
+    const seules = modifier(construite, (monde) => sans(monde, 'o-terminal', 'o-post-it'));
+    expect(controlerGrande(seules.entree, seules.station).some((ecart) => /caméras/i.test(ecart))).toBe(true);
+  });
+});

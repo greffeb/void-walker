@@ -787,9 +787,12 @@ describe('errance au dé de rencontre (spec créature mobile §3.2)', () => {
   const chezB: DefMonde = { ...errant, depart: 'b' };
 
   describe('bruit lointain (spec créature mobile §3.3)', () => {
-    /** Ce qu'entend le passager en attendant sur place, la créature posée là. */
-    const entendu = (monde: DefMonde, graine: number, creature: Partial<NonNullable<Partie['etat']['creature']>> & { readonly piece: string }): string[] =>
-      types(attendre(monde, placee(monde, graine, creature)).evenements);
+    /** Ce qu'entend le passager en attendant sur place, la créature posée là ; IA Station a déjà dit ses deux messages (lot 4). */
+    const entendu = (monde: DefMonde, graine: number, creature: Partial<NonNullable<Partie['etat']['creature']>> & { readonly piece: string }): string[] => {
+      const partie = placee(monde, graine, creature);
+      const signes = [{ sorte: 'presence', piece: 'a', action: 0 }, { sorte: 'presence', piece: 'b', action: 0 }] as const;
+      return types(attendre(monde, { ...partie, etat: { ...partie.etat, signes } }).evenements);
+    };
 
     it('face 2 seulement, créature active loin du joueur (en A, D n’est voisine que de C)', () => {
       expect(entendu(errant, graineAvecFace(2, 1), { piece: 'd' })).toContain('bruit_lointain');

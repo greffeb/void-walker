@@ -187,8 +187,13 @@ describe('dans le pas', () => {
     expect(second.evenements.map((e) => e.type)).toEqual(['attente', 'bruit_proche']);
     expect(second.partie.etat.ecoutees).toEqual(premier.partie.etat.ecoutees);
     const lointain = grainesCalmes(1, 0, (g) => faceRencontre(g, 1, 1) === 2)[0]!;
-    const { evenements } = attendre(LOIN, nouvellePartie(LOIN, { version: VERSION, graine: lointain }));
+    // IA Station a déjà dit ses deux messages : le bruit lointain reste (lot 4).
+    const loin = nouvellePartie(LOIN, { version: VERSION, graine: lointain });
+    const muette = { ...loin, etat: { ...loin.etat, signes: [{ sorte: 'presence', piece: 'a', action: 0 }, { sorte: 'presence', piece: 'b', action: 0 }] as const } };
+    const { evenements } = attendre(LOIN, muette);
     expect(evenements.map((e) => e.type)).toEqual(['attente', 'bruit_lointain', 'ecoute', 'ecoute', 'ecoute', 'ecoute']);
+    // Sinon, il parle à la place du bruit lointain, et l'écoute suit de même.
+    expect(attendre(LOIN, loin).evenements.map((e) => e.type)).toEqual(['attente', 'assistance', 'ecoute', 'ecoute', 'ecoute', 'ecoute']);
   });
 
   it('un net pose le repère BRUIT sur sa porte, et se redit « toujours »', () => {

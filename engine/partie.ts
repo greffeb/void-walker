@@ -13,6 +13,8 @@ import { observer, terminee } from './observation';
 import { FRAICHEUR, faceRencontre, tirageErrance } from './rencontre';
 import { aRaconter, ecouterPortes } from './ecoute';
 import { abimerCapteur, capteurPose } from './capteur';
+import { abimerCameras } from './surveillance';
+import { choisirSigne, faitsNeufs, signePermis, signePublic } from './signes';
 import { aggraver, asphyxier, expose, intercepter, risqueIci } from './sante';
 import { actualiserVide, piecesConnues, type Vide } from './vide';
 import {
@@ -378,7 +380,15 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown, des?: 
   if (face === 2 && !vaincu && conclu.fin === null && creatureActive(conclu) && conclu.creature?.contact !== true && typeof ou === 'string' && ou !== conclu.piece && !assourdie(monde, conclu, conclu.piece) && !evenements.some((e) => SIGNES_CREATURE.has(e.type))) {
     const voisines = liaisonsDe(monde, conclu.piece).filter((lien) => lien.entre.includes(ou));
     const lien = liaisonsVisibles(monde, conclu, conclu.piece).find((candidate) => voisines.includes(candidate));
-    if (voisines.length === 0) evenements.push({ type: 'bruit_lointain' });
+    const faits = voisines.length === 0 && signePermis(conclu) ? faitsNeufs(monde, conclu) : [];
+    if (faits.length > 0) {
+      // Plus loin, IA Station signale parfois un fait vrai à la place du bruit lourd, une ou deux fois par partie (lot 4).
+      const signe = choisirSigne(faits, partie.enregistrement.graine, action);
+      const signes = [...(conclu.signes ?? []), { ...signe, action }];
+      const message = `signe-${signes.length}`;
+      conclu = { ...conclu, signes, messages: [...conclu.messages, message] };
+      evenements.push({ type: 'assistance', message, signe: signePublic(monde, signe) });
+    } else if (voisines.length === 0) evenements.push({ type: 'bruit_lointain' });
     else if (lien !== undefined && !assourdie(monde, conclu, ou)) {
       evenements.push({ type: 'bruit_proche', passage: refPassage(monde, conclu, lien, conclu.piece) });
       conclu = { ...conclu, reperes: { ...conclu.reperes, entendue: { piece: ou, par: lien.id } } };
@@ -409,6 +419,8 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown, des?: 
   }
   // Le capteur posé bipe quand ce qu'il lit change, tombe en panne ou est détruit ; pas au pas qui finit la partie (créature mobile lot 3, D-352).
   if (!vaincu && conclu.fin === null) {
+    // Les caméras du poste tombent de même, sans bip ni récit (lot 4).
+    if (monde.rencontre !== undefined && (monde.cameras?.length ?? 0) > 0) conclu = abimerCameras(monde, partie.etat, conclu, partie.enregistrement.graine, action);
     if (monde.rencontre !== undefined && capteurPose(monde, partie.etat) !== null) conclu = abimerCapteur(monde, partie.etat, conclu, partie.enregistrement.graine, action);
     const avant = capteurPose(monde, partie.etat);
     const apres = capteurPose(monde, conclu);

@@ -22,6 +22,10 @@ export const TEXTES_CATALOGUE: TextesMorceau = {
     cat_plateforme: { texte: 'plateforme de fret', genre: 'f', nombre: 's', elision: false },
     cat_bureau_fret: { texte: 'bureau du fret', genre: 'm', nombre: 's', elision: false },
     cat_laboratoire: { texte: 'laboratoire', genre: 'm', nombre: 's', elision: false },
+    // Salle de surveillance, son terminal et le post-it du mot de passe (lot 4).
+    cat_surveillance: { texte: 'salle de surveillance', genre: 'f', nombre: 's', elision: false },
+    cat_terminal: { texte: 'terminal', genre: 'm', nombre: 's', elision: false },
+    cat_post_it: { texte: 'post-it', genre: 'm', nombre: 's', elision: false },
     // Objets du butin (spec §6.6) : leur nom n'est celui d'aucun morceau ni d'aucune pièce (NP-04).
     cat_trousse: { texte: 'trousse de soin', genre: 'f', nombre: 's', elision: false },
     cat_capteur: { texte: 'capteur de mouvement', genre: 'm', nombre: 's', elision: false },
@@ -102,6 +106,24 @@ export const TEXTES_CATALOGUE: TextesMorceau = {
     cat_burette_reserve: [
       'Une burette de réserve, pleine, le bouchon encore plombé. L’étiquette précise : lubrifiant glissant, non inflammable.',
       'Une petite burette de réserve à bec court. L’étiquette précise : glissant, non inflammable.',
+    ],
+    // Salle de surveillance (lot 4) : le terminal y est toujours, on peut le nommer.
+    cat_surveillance: [
+      'Un comptoir, trois écrans, une chaise qui tourne encore. Un terminal attend qu’on le touche.',
+      'Un comptoir face à trois écrans en veille, une chaise repoussée en hâte. Sur le terminal, un curseur clignote.',
+    ],
+    cat_terminal: [
+      'Un terminal de sécurité. Écran de connexion : IDENTIFIANT AGENT DE GARDE, MOT DE PASSE ________.',
+      'Un terminal de sécurité, clavier usé. L’écran attend : IDENTIFIANT AGENT DE GARDE, MOT DE PASSE ________.',
+    ],
+    // Le code du post-it est un support écrit : seule exception aux chiffres hors document (17-univers §6). Un code par variante.
+    cat_post_it: [
+      'Un post-it jaune, une écriture pressée : « garde — K7-ORION ».',
+      'Un post-it jaune, collé de travers, au feutre : « garde — B4-VEGA ».',
+      'Un post-it jaune corné, une écriture pressée : « garde — R2-LYRA ».',
+      'Un post-it jaune, souligné deux fois : « garde — M9-ATLAS ».',
+      'Un post-it jaune, l’encre a un peu bavé : « garde — T3-CASTOR ».',
+      'Un post-it jaune, écrit à la hâte : « garde — D8-POLLUX ».',
     ],
   },
   assistance: {},

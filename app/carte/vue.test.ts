@@ -1,5 +1,5 @@
 import type { CartePublique, PieceCarte, RectPlan, RefPiece } from '../../engine';
-import { borner, cadreConnu, centresIcones, CIBLE_MIN_PX, enPixels, etiquettes, glisser, iconesDe, MARGE_VUE_PX, montrer, pincer, vueInitiale, ZOOM_MAX, zoneTouchable, zoomMin } from './vue';
+import { borner, cadreConnu, centresIcones, CIBLE_MIN_PX, enPixels, etiquettes, glisser, iconesDe, MARGE_VUE_PX, montrer, pincer, vueEntiere, vueInitiale, ZOOM_MAX, zoneTouchable, zoomMin } from './vue';
 
 const ref = (nom: string): RefPiece => ({ sorte: 'piece', id: `e-${nom}`, nom });
 
@@ -40,6 +40,14 @@ describe('vue du plan (14 §2.3)', () => {
 
   it('s’ouvre à l’échelle de base, centrée sur la pièce actuelle (D-205)', () => {
     expect(vueInitiale(CARTE, ZONE, 34)).toEqual({ zoom: 1, x: 195 - 6 * 34, y: 300 - 1.5 * 34 });
+  });
+
+  it('fenêtre du poste : toute la station tient dans la zone, centrée (lot 4)', () => {
+    const cadre = { x: 0, y: 0, largeur: 20, hauteur: 30 };
+    const vue = vueEntiere(cadre, ZONE, 34);
+    expect(vue.zoom).toBe(zoomMin(cadre, ZONE, 34));
+    expect(vue.x + 10 * 34 * vue.zoom).toBeCloseTo(195);
+    expect(vue.y + 15 * 34 * vue.zoom).toBeCloseTo(300);
   });
 
   it('se pince de la vue de toute la partie connue jusqu’au double de l’échelle de base', () => {
