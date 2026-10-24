@@ -54,3 +54,29 @@ export function aRaconter(
   }
   return dits;
 }
+
+/** Ce que le récit dit d'une écoute : une porte, des portes silencieuses ensemble, ou le rappel des portes inchangées (#261, #266). */
+export type DitEcoute =
+  | { readonly sorte: 'une'; readonly liaison: string; readonly entendu: EntenduRecit }
+  | { readonly sorte: 'groupe'; readonly liaisons: readonly string[]; readonly entendu: 'rien' | 'plus_rien'; readonly toutes: boolean }
+  | { readonly sorte: 'rappel'; readonly autres: boolean; readonly liaison?: string };
+
+/** `aRaconter`, les silences groupés à la place du premier (D-363), puis le rappel s'il reste des portes non dites (D-362). */
+export function recitEcoute(avant: Readonly<Record<string, Entendu>> | undefined, maintenant: Readonly<Record<string, Entendu>>): DitEcoute[] {
+  const dits = aRaconter(avant, maintenant);
+  const total = Object.keys(maintenant).length;
+  const recit: DitEcoute[] = [];
+  for (const { liaison, entendu } of dits) {
+    if (entendu !== 'rien' && entendu !== 'plus_rien') recit.push({ sorte: 'une', liaison, entendu });
+    else if (!recit.some((dit) => dit.sorte === 'groupe' && dit.entendu === entendu)) {
+      const liaisons = dits.filter((dit) => dit.entendu === entendu).map((dit) => dit.liaison);
+      const [seule] = liaisons;
+      if (liaisons.length === 1 && seule !== undefined) recit.push({ sorte: 'une', liaison: seule, entendu });
+      else recit.push({ sorte: 'groupe', liaisons, entendu, toutes: entendu === 'rien' && liaisons.length === total && total >= 4 && total <= 12 });
+    }
+  }
+  const [seule] = Object.keys(maintenant);
+  // Une seule porte dans la pièce : le rappel la nomme, « les portes » serait faux.
+  if (avant !== undefined && dits.length < total) recit.push(total === 1 && seule !== undefined ? { sorte: 'rappel', autres: false, liaison: seule } : { sorte: 'rappel', autres: dits.length > 0 });
+  return recit;
+}

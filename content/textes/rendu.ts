@@ -76,6 +76,10 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
     case 'poursuite_proche':
     case 'ecoute':
       return { passage: nomDe(textes, evenement.passage) };
+    case 'ecoute_rappel':
+      return evenement.passage === undefined ? {} : { passage: nomDe(textes, evenement.passage) };
+    case 'ecoute_groupee':
+      return { passages: evenement.passages.map((passage) => nomDe(textes, passage)), nombre: { texte: NOMBRES[evenement.passages.length] ?? String(evenement.passages.length), genre: 'f', nombre: 'p', elision: false } };
     case 'attente':
     case 'pas_entendus':
     case 'souffle_entendu':
@@ -173,10 +177,17 @@ export function variantesDe(textes: TextesMonde, evenement: Evenement): Variante
   if (evenement.type === 'evacuation') return textes.evacuations[cleEvacuation(evenement.sources)];
   if (evenement.type === 'assistance') throw new ErreurTexte('Un message d’assistance ne se raconte pas.');
   if (evenement.type === 'ecoute') return textes.ecoute[evenement.entendu];
+  if (evenement.type === 'ecoute_groupee') return textes.ecouteGroupee[evenement.toutes ? 'toutes' : evenement.entendu];
+  if (evenement.type === 'ecoute_rappel') return textes.ecouteRappel[evenement.passage !== undefined ? 'porte' : evenement.autres ? 'autres' : 'portes'];
   if (evenement.type === 'capteur') return textes.capteur[evenement.etat];
   if (evenement.type === 'capteur_pose') return textes.capteurPose[evenement.etat];
   return textes.evenements[evenement.type];
 }
+
+const ECOUTES: ReadonlySet<Evenement['type']> = new Set(['ecoute', 'ecoute_couverte', 'ecoute_groupee', 'ecoute_rappel']);
+
+/** Nombre de portes en lettres, pour « les quatre portes » (D-363) ; `recitEcoute` n'en groupe jamais plus de douze. */
+const NOMBRES: Readonly<Record<number, string>> = { 4: 'quatre', 5: 'cinq', 6: 'six', 7: 'sept', 8: 'huit', 9: 'neuf', 10: 'dix', 11: 'onze', 12: 'douze' };
 
 /** Une phrase par événement appliqué (C-07 NP-01) ; les messages d'assistance se lisent à part (`rendreAssistance`). */
 const COUPS: ReadonlySet<Evenement['type']> = new Set(['menace', 'aggravation_blesse', 'aggravation_critique', 'defaite']);
@@ -194,12 +205,19 @@ export function rendreEvenements(textes: TextesMonde, evenements: readonly Evene
   const recit = evenements.filter((evenement) => evenement.type !== 'assistance' && evenement.type !== 'bruit_station');
   const seule = recit.length === 1 && recit[0]?.type === 'attente';
   if (seule && (cle.attentes === 5 || cle.attentes === 10)) return [textes.attentesLongues[cle.attentes]];
+  // Rien de neuf, hors le rappel des portes ou le vacarme : la patience prend la place de la phrase d'attente, le rappel suit (D-364).
+  const calme = recit[0]?.type === 'attente' && recit.slice(1).every(({ type }) => type === 'ecoute_rappel' || type === 'ecoute_couverte');
+  const ecouteDite = evenements.some(({ type }) => ECOUTES.has(type));
   return evenements.flatMap((evenement, index) => {
     if (horsRecit(evenement, evenements)) return [];
+    if (calme && (cle.attentes === 5 || cle.attentes === 10)) {
+      if (evenement.type === 'bruit_station') return [];
+      if (evenement.type === 'attente') return [textes.attentesLongues[cle.attentes]];
+    }
     // Une attente qui n'est pas seule à raconter (écoute, bruit, bip du capteur…) ne dit pas « Rien ne bouge » : la suite le contredirait.
-    const ecoute = evenement.type === 'attente' && (!seule || evenements.some(({ type }) => type === 'ecoute' || type === 'ecoute_couverte'));
+    const ecoute = evenement.type === 'attente' && (!seule || ecouteDite);
     const vacarme = evenement.type === 'attente' && evenement.vacarme === true;
-    const variantes = vacarme && !evenements.some(({ type }) => type === 'ecoute' || type === 'ecoute_couverte') ? textes.attenteVacarme : ecoute ? textes.attenteEcoute : variantesDe(textes, evenement);
+    const variantes = vacarme && !ecouteDite ? textes.attenteVacarme : ecoute ? textes.attenteEcoute : variantesDe(textes, evenement);
     const variante = choisirVariante(variantes, `${cle.graine}:${cle.action}:${index}:${evenement.type}`);
     return [remplir(variante, valeursEvenement(textes, evenement))];
   });

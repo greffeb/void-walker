@@ -66,6 +66,17 @@ traces_fraiches: ['Au sol, une traînée encore humide : quelque chose est pass�
     machines: ['Derrière {le:passage}, le grondement des machines couvre tout ; on croit y entendre des coups, sans savoir lesquels.'],
     froid: ['Contre {le:passage}, le métal glacé ne laisse passer que le ronron du compresseur.'],
   },
+  // Portes silencieuses ensemble et rappel des portes inchangées (#261, #266, D-362 et D-363).
+  ecouteGroupee: {
+    rien: ['Derrière {le:passages}, le silence.', 'Derrière {le:passages}, rien.'],
+    plus_rien: ['Derrière {le:passages}, plus rien.', 'Derrière {le:passages}, le bruit s’est tu.'],
+    toutes: ['Derrière les {nom:nombre} portes, le silence.'],
+  },
+  ecouteRappel: {
+    portes: ['Derrière les portes, rien de nouveau.', 'Rien de nouveau derrière les portes.'],
+    autres: ['Aux autres portes, rien de nouveau.'],
+    porte: ['Derrière {le:passage}, rien de nouveau.'],
+  },
   // Capteur de mouvement (lot 3 de la créature mobile) : seul « MOUVEMENT » est en rouge ; « calme » n'est dit que d'une pièce
   // dont il lit l'air, et une panne ou une destruction se dit toujours.
   capteurPose: {

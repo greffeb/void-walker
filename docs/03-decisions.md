@@ -1,7 +1,7 @@
 # Void Walker V2 — journal des décisions
 
 > **Statut :** JOURNAL ACTIF — seules les entrées « Validé » font autorité.
-> **Mise à jour :** 2026-10-24 (créature en poursuite dans la pièce voisine : toujours du bruit, D-361, #258) ; 2026-10-23 (créature mobile, lot 4 : salle de surveillance, carte révélée, caméras et messages d'IA Station, D-356 à D-360) ; 2026-10-23 (carte : portes en barre et taquets, D-355) ; 2026-10-23 (créature mobile, lot 3 : le capteur, D-350 à D-354) ; 2026-10-22 (créature mobile, lot 2 : écoute en attendant, D-343 à D-347) ; 2026-10-21 (créature mobile : conception approuvée, D-330 à D-342, D-048 remplacée dans les grandes stations) ; 2026-10-21 (M-11 et M-12 tirés dans les grandes stations, D-329, #236) ; 2026-10-20 (intro de NOUVELLE PARTIE, #200 ; grandes stations habitées, livraisons 2 et 3 : clés dispersées et butin, lore et documents ; D-328, demande du porteur sur « Poser » ; décisions des grandes stations renumérotées D-313 à D-328 à la reprise de `main`).
+> **Mise à jour :** 2026-10-24 (écoute : rappel des portes inchangées, silences groupés, #261, #262 et #266, D-362 à D-365) ; 2026-10-24 (créature en poursuite dans la pièce voisine : toujours du bruit, D-361, #258) ; 2026-10-23 (créature mobile, lot 4 : salle de surveillance, carte révélée, caméras et messages d'IA Station, D-356 à D-360) ; 2026-10-23 (carte : portes en barre et taquets, D-355) ; 2026-10-23 (créature mobile, lot 3 : le capteur, D-350 à D-354) ; 2026-10-22 (créature mobile, lot 2 : écoute en attendant, D-343 à D-347) ; 2026-10-21 (créature mobile : conception approuvée, D-330 à D-342, D-048 remplacée dans les grandes stations) ; 2026-10-21 (M-11 et M-12 tirés dans les grandes stations, D-329, #236) ; 2026-10-20 (intro de NOUVELLE PARTIE, #200 ; grandes stations habitées, livraisons 2 et 3 : clés dispersées et butin, lore et documents ; D-328, demande du porteur sur « Poser » ; décisions des grandes stations renumérotées D-313 à D-328 à la reprise de `main`).
 
 ## Règles
 
@@ -28,7 +28,7 @@ Cet index sert à trouver les décisions liées à une tâche ; il ne remplace p
 | Textes du jeu | [D-109 à D-117](#d-109--français-seulement-au-lancement), [D-243](#d-243--un-lore-léger-au-lancement-écrit-avec-soin-par-lassistant-principal) |
 | Chariot et drone M-12 | [D-304 à D-307](#d-304--m-12-repose-sur-une-coopération-nécessaire) |
 | Interface et interactions d'écran | [D-140 à D-155](#d-140--maquette-dinterface-v1-et-direction--phosphore-), [D-176](#d-176--une-couleur-par-menu--cyan-pour-linventaire), [D-182](#d-182--une-seule-touche-quand-rien-nest-à-craindre-sauf-pour-les-portes), [D-277](#d-277--entrer-dans-une-pièce-jamais-vue-la-regarde-aussitôt), [D-186 à D-187](#d-186--le-nouveau-texte-sécrit-à-la-machine-puis-un-curseur-clignote), [D-191 à D-192](#d-191--écran-plus-compact-boutons-toujours-visibles-six-lignes-de-récit-au-moins), [D-197 à D-198](#d-197--nouveaux-noms-de-pièces-dans-ar-01-et-ar-02), [D-229 à D-230](#d-229--les-portes-se-manœuvrent-depuis--se-déplacer-vers-), [D-233](#d-233--le-danger-apparu-sannonce-en-rouge-triangle-clignotant-avec-son-alarme), [D-263](#d-263--ia-station-sannonce-sur-son-bouton-plus-dans-le-récit), [D-287 à D-288](#d-287--les-options-en-trois-sous-menus--son-et-texte-rapports-application), [D-308 à D-312](#d-308--après-nouvelle-partie-une-intro-montre-que-la-station-est-tirée-au-hasard), [D-328](#d-328--poser-la-caisse-sous-la-grille-dun-seul-geste), [D-349](#d-349--flèche-orientée-devant-chaque-destination) |
-| Créature, blessures et dangers | [D-177 à D-181](#d-177--la-créature-suit-le-passage-quelle-vous-a-vu-prendre), [D-183 à D-190](#d-183--rester-sous-ses-yeux-se-joue-au-même-dé-que-la-fuite), [D-276](#d-276--alertée-la-créature-poursuit-écoute-et-fouille), [D-278](#d-278--le-jet-dinterception-touche-toujours-v1-de-194), [D-279](#d-279--alertée-la-créature-force-une-porte-fermée-sur-sa-piste-v2-de-194), [D-330 à D-342](#d-330--la-créature-a-un-territoire--les-pièces-reliées-par-des-passages-ouverts), [D-343 à D-347](#d-343--attendre-écoute-à-toutes-les-portes-pas-de-bouton-écouter), [D-350 à D-354](#d-350--le-capteur--au-plus-un-par-station-posé-pour-de-bon-par-poser), [D-356 à D-360](#d-356--la-salle-de-surveillance--à-part-dans-un-cinquième-des-grandes-stations-un-terminal-à-mot-de-passe-sur-post-it), [D-361](#d-361--en-poursuite-sur-vos-talons-dans-la-pièce-voisine-elle-fait-toujours-du-bruit) |
+| Créature, blessures et dangers | [D-177 à D-181](#d-177--la-créature-suit-le-passage-quelle-vous-a-vu-prendre), [D-183 à D-190](#d-183--rester-sous-ses-yeux-se-joue-au-même-dé-que-la-fuite), [D-276](#d-276--alertée-la-créature-poursuit-écoute-et-fouille), [D-278](#d-278--le-jet-dinterception-touche-toujours-v1-de-194), [D-279](#d-279--alertée-la-créature-force-une-porte-fermée-sur-sa-piste-v2-de-194), [D-330 à D-342](#d-330--la-créature-a-un-territoire--les-pièces-reliées-par-des-passages-ouverts), [D-343 à D-347](#d-343--attendre-écoute-à-toutes-les-portes-pas-de-bouton-écouter), [D-362 à D-365](#d-362--chaque-attente-dit-quelque-chose-des-portes), [D-350 à D-354](#d-350--le-capteur--au-plus-un-par-station-posé-pour-de-bon-par-poser), [D-356 à D-360](#d-356--la-salle-de-surveillance--à-part-dans-un-cinquième-des-grandes-stations-un-terminal-à-mot-de-passe-sur-post-it), [D-361](#d-361--en-poursuite-sur-vos-talons-dans-la-pièce-voisine-elle-fait-toujours-du-bruit) |
 | Carte et géométrie des stations | [D-201 à D-215](#d-201--la-carte-est-un-plan-de-pont), [D-273](#d-273--sur-le-plan-le-passager-est-un-point-à-ondes-radar-la-créature-un-œil-rouge) |
 | Son | [D-216 à D-226](#d-216--bruitages-synthétisés-pour-le-projet) |
 
@@ -2813,7 +2813,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 - Limite [Détail de l'agent] :
   - **Grandes stations seulement** (monde à `rencontre`), comme D-342. Ailleurs, ATTENDRE reste tel quel, empreintes comprises.
   - **Pas d'écoute quand le pas la perçoit déjà ni quand elle est en vue** : le récit dit déjà où elle est. Le dernier résultat gardé ne change pas.
-  - **Quand rien n'a changé**, ATTENDRE ne rend que `attente`, pour que les messages de patience (D-289) continuent de venir.
+  - ~~**Quand rien n'a changé**, ATTENDRE ne rend que `attente`, pour que les messages de patience (D-289) continuent de venir.~~ Remplacé par D-362 et D-364.
   - **Rendu.** Un bruit de station intercalé ne change pas le texte d'écoute de l'attente.
   - **Pas de son nouveau** : ATTENDRE garde son son. **Sauvegardes** : rien à coder (D-341).
   - **Bot averti.** Il écoute avant d'ouvrir vers l'inconnu, à sa première arrivée dans la pièce, et n'écoute pas quand la créature est en vue (voir la mesure en D-344).
@@ -2845,8 +2845,8 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 - Décision : une pièce aveugle ne donne pas de jet (conception approuvée, §4.4, D-338).
 - Précise : D-338, D-335 (mensonge permis près des machines, cause visible).
 - Limite [Détail de l'agent] :
-  - **Salle des machines en marche** (`assourdie`) : le récit dit qu'on croit y entendre des coups, sans savoir lesquels ; **chambre froide** (`chambreFroide`) : le compresseur. Ce bruit est constant : dit une fois, jamais redit. Le grondement est le seul mensonge, et sa cause se voit.
-  - **Passager dans une salle des machines en marche** : une seule phrase, « le vacarme couvre tout », à la première attente, puis plus rien, et aucun jet.
+  - **Salle des machines en marche** (`assourdie`) : le récit dit qu'on croit y entendre des coups, sans savoir lesquels ; **chambre froide** (`chambreFroide`) : le compresseur. Ce bruit est constant : dit une fois, jamais redit (ensuite compté dans « rien de nouveau », D-362). Le grondement est le seul mensonge, et sa cause se voit.
+  - **Passager dans une salle des machines en marche** : une seule phrase, « le vacarme couvre tout », ~~à la première attente, puis plus rien~~ à chaque attente (D-362), et aucun jet.
   - Textes de l'assistant principal, non validés par le porteur.
 
 ### D-346 — Ne redire que ce qui change, net redit, « plus rien »
@@ -3057,3 +3057,40 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
   - **Machines** : pas de bruit si l'un des deux est dans une salle des machines en marche (D-163).
   - **Empreintes** : la fuite sous ses yeux donne maintenant ce bruit, ce qui change l'état (repère entendu) de ces parties ; les rejeux d'avant ne redonnent plus la même empreinte.
   - **Textes** (couche menace) : deux variantes d'une phrase, sans nommer la créature. Au pas où elle frappe (menace ou blessure), la phrase est tue : le récit la situe déjà, et fuir blessé vers une pièce jamais vue dépasserait quatre phrases (D-111) ; l'événement garde son repère BRUIT.
+
+### D-362 — Chaque attente dit quelque chose des portes
+
+- Date / statut : 2026-10-24 / **Validé** sur maquette ([ecouter-rappel.html](maquette/ecouter-rappel.html), onglets 2 et 3) ; validation sur téléphone à venir.
+- Origine : retours d'un autre joueur, [#261](https://github.com/greffeb/void-walker/issues/261) (« je ne trouve pas comment écouter de nouveau ») ; le porteur : « il faut quand même faire un rappel que rien ne se passe et qu'on écoute quand même aux portes ». La maquette du lot 2 (ecouter.html, onglet 2) le prévoyait déjà ; l'implémentation l'avait retiré.
+- Décision : en grande station, une attente qui ne redit pas toutes les portes finit par un rappel : « Derrière les portes, rien de nouveau. » si aucune n'a changé, « Aux autres portes, rien de nouveau. » après celles qui ont changé. Dans une pièce à une seule porte, le rappel la nomme : « Derrière la porte du poste incendie, rien de nouveau. » (le porteur, après l'essai). Dans une salle des machines en marche, « le vacarme couvre tout » est dit à chaque attente.
+- Remplace : la limite « ne rend que `attente` » de D-343 ; précise D-345 et D-346.
+- Limite [Détail de l'agent] :
+  - **Pas de rappel** à la première attente dans une pièce (tout est dit), ni quand toutes les portes viennent d'être dites (un « toujours » seul, par exemple).
+  - **Regarder** ne coûte rien et ne fait pas oublier l'écoute : l'attente suivante donne le rappel. C'est le chemin de #261.
+  - Événement `ecoute_rappel` (`autres`), une phrase à lui : les rangs du rouge (`alertesMenace`) restent alignés. Jamais en rouge.
+
+### D-363 — Les portes silencieuses sont dites ensemble
+
+- Date / statut : 2026-10-24 / **Validé** sur maquette (onglets 1 et 5) ; validation sur téléphone à venir.
+- Origine : [#266](https://github.com/greffeb/void-walker/issues/266) : « grouper les silencieuses quelque soit leur nombre, et mettre à part les bruyantes ».
+- Décision : au moins deux portes silencieuses au même pas se disent en une phrase ; les autres résultats restent une phrase par porte. Toutes les portes de la pièce silencieuses, à partir de quatre : « Derrière les quatre portes, le silence. » ; deux ou trois : on les nomme.
+- Précise : D-346.
+- Limite [Détail de l'agent, accepté par le porteur] :
+  - **Liste simple** : « Derrière la porte du dortoir, la porte de l'infirmerie et la porte du réfectoire, le silence. » La forme de la maquette (« les portes du dortoir, de… ») demanderait le pluriel des noms de passage, qui n'existe pas.
+  - **« Plus rien »** se groupe de même ; jamais « toutes ». Le groupe prend la place de sa première porte ; machines et chambre froide restent dites une par une.
+  - **Nombres en lettres** de quatre à douze ; au-delà, liste simple. Événement `ecoute_groupee`, jamais en rouge.
+
+### D-364 — Aux 5e et 10e attentes, la patience puis le rappel
+
+- Date / statut : 2026-10-24 / **Validé** sur maquette (onglet 4).
+- Origine : le porteur, sur la maquette ; D-289 et #225.
+- Décision : quand l'attente n'apporte rien d'autre que le rappel ou le vacarme, le message de patience prend la place de « Vous restez immobile… », et le rappel ou le vacarme suit.
+- Précise : D-289, D-343.
+- Limite [Détail de l'agent] : un bruit de station tombé sur ce pas se tait, comme quand l'attente est seule.
+
+### D-365 — Regarder n'écoute pas, Attendre garde son nom
+
+- Date / statut : 2026-10-24 / **Validé** par le porteur.
+- Origine : [#262](https://github.com/greffeb/void-walker/issues/262) : mêler l'écoute à Regarder, renommé « Observer ».
+- Décision : non. Regarder reste gratuit et n'écoute pas, ATTENDRE écoute et garde son nom ; le rappel de D-362 suffit à montrer qu'on écoute.
+- Confirme : D-343.
