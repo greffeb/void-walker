@@ -88,7 +88,7 @@ describe('fuite exposée (C-04 §4, D-052, D-055)', () => {
     const blesse = engager(expose(graineOu('aller', 'salle_a', defavorable)), 'aller', 'salle_a');
     expect(blesse.tirages).toHaveLength(1);
     // Elle frappe au seuil, avant le déplacement : le récit ne la place pas dans la pièce d'arrivée.
-    expect(types(blesse.evenements)).toEqual(['aggravation_blesse', 'deplacement']);
+    expect(types(blesse.evenements)).toEqual(['aggravation_blesse', 'deplacement', 'poursuite_proche']);
     expect(blesse.evenements[0]).toEqual({ type: 'aggravation_blesse', causes: ['griffes'] });
     expect(blesse.partie.etat).toMatchObject({ piece: 'a', sante: 'blesse' });
     if (!ESQUIVE_POSSIBLE) {
@@ -160,7 +160,7 @@ describe('rester sous ses yeux (D-183) et action libre après le premier contact
     const contact = engager(partie(), 'aller', 'salle_b').partie;
     const fuir = engager(contact, 'aller', 'salle_a');
     expect(fuir.tirages).toEqual([]);
-    expect(types(fuir.evenements)).toEqual(['deplacement']);
+    expect(types(fuir.evenements)).toEqual(['deplacement', 'poursuite_proche']);
     const rester = engager(contact, 'prendre', 'cle');
     expect(rester.tirages).toEqual([]);
     expect(types(rester.evenements)).toEqual(['objet_pris', 'menace']);

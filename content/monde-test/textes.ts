@@ -88,6 +88,7 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     souffle_entendu: ['Même votre souffle semble porter : là-bas, quelque chose écoute.', 'Vous n’osez plus respirer : quelque chose, là-bas, tend l’oreille.'],
     bruit_lointain: ['Très loin, quelque chose de lourd racle le sol, puis plus rien.', 'Au loin, un bruit mou et pesant, comme une chair frottée contre du métal. Puis le silence.', 'Très loin, un choc sourd et humide, deux fois. Rien ne suit.'],
     bruit_proche: ['Derrière {le:passage}, un souffle lourd, tout proche. Puis plus rien.', 'Contre {le:passage}, quelque chose de massif se déplace sans hâte. Le métal craque à peine.'],
+    poursuite_proche: ['Derrière {le:passage}, un halètement tout proche ne vous lâche pas.', 'Contre {le:passage}, quelque chose racle et souffle, juste derrière vous.'],
 traces_fraiches: ['Au sol, une traînée encore humide : quelque chose est passé ici il y a peu.', 'L’air garde une odeur douceâtre, toute fraîche. Quelque chose vient de passer.'],
     ecoute_couverte: MENACE.evenements.ecoute_couverte,
     premier_contact: [

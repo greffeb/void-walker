@@ -57,7 +57,7 @@ export function botAleatoire(graine: number): Bot {
 }
 
 /** Récit qui dit que la créature est là, ou tout près (ce que lit le joueur). */
-const MENACES: ReadonlySet<Evenement['type']> = new Set(['premier_contact', 'menace', 'creature_entre', 'creature_glisse', 'bruit_creature', 'pas_entendus', 'souffle_entendu']);
+const MENACES: ReadonlySet<Evenement['type']> = new Set(['premier_contact', 'menace', 'creature_entre', 'creature_glisse', 'bruit_creature', 'poursuite_proche', 'pas_entendus', 'souffle_entendu']);
 
 const GESTES_DE_PASSAGE: ReadonlySet<OptionMenu['action']> = new Set(['aller', 'ouvrir', 'fermer', 'attendre', 'poser', 'retirer', 'regarder']);
 
