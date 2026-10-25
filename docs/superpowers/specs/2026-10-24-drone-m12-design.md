@@ -134,3 +134,10 @@ La partie voulue :
 - Sur la description résumée : « ça paraît bien ».
 - « On peut mettre un bouton d'arrêt, mais par contre, il faut s'assurer de pouvoir le suivre ou bien le rattraper. Peut-être que le drone peut mettre deux actions à bouger pendant que nous, on n'en met qu'une seule. »
 - Sur les petites stations, entre une pièce fixe, une place fixe par combinaison et une place qui change à chaque partie (vérification plus longue) : « Change à chaque partie ».
+
+## Annexe B. Écarts décidés pendant l'implémentation (2026-10-25)
+
+- Le drone n'est jamais posé au départ (GP-04 : le vestibule reste vide), ni au repaire de la créature (la station n'aurait plus de chemin sûr, D-084), ni derrière une cloison de l'ordre libre (il imposerait l'ordre des branches). Le §4.8 l'autorisait.
+- La condition « chariot vu » est une phase du drone (« prêt ») et non une lecture des pièces visitées, que le solveur ignore (§4.7).
+- Une place se prouve d'abord par un parcours construit et rejoué (#292). 18 petites compositions sortent du tirage, 4 parce que M-12 n'aide plus contre une créature bloquante, 14 faute de preuve. Le porteur : « sinon on les retire du tirage ». Trois compositions des grandes stations perdent aussi leurs variantes.
+- Décisions : D-366 à D-369.
