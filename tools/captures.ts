@@ -116,7 +116,7 @@ function gesteDe({ monde, textes }: EntreeMonde, partie: Partie, observation: Ob
   }
   const zone = dock.piece.some((groupe) => groupe.options.includes(option)) ? 'piece' : 'inventaire';
   const nom = nomDe(textes, option.cible).texte;
-  const parametre = option.parametre === undefined ? null : nomParametre(textes, option.parametre);
+  const parametre = option.parametre === undefined ? null : nomParametre(textes, option.action, option.parametre);
   const bouton = nomPuce(textes, option.cible);
   return { titre, zone, bouton, bulle: bouton, verbe: textes.verbes[option.action], versInconnue: false, parametre, fil, rappel, nom, commande, direct };
 }
