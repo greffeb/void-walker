@@ -129,22 +129,24 @@ function recitDrone(partie: Partie, action: string, cible: string, monde = MONDE
 
 describe('récit du drone à chaque action (retours du porteur, PR #300)', () => {
   const id = (liaison: string) => idPublic(MONDE.id, liaison);
+  /** Le récit du drone de chaque geste, dans l'ordre. */
+  const recits = (depart: Partie, gestes: readonly (readonly [string, string])[]): string[][] => {
+    let partie = depart;
+    return gestes.map(([action, cible]) => {
+      const suivant = recitDrone(partie, action, cible);
+      partie = suivant.partie;
+      return suivant.recit;
+    });
+  };
   it('vu : il part, il arrive, il s’arrête devant une porte fermée', () => {
-    let { partie, recit } = recitDrone(prete(false), 'envoyer', 'x');
-    expect(recit).toEqual(['drone_envoye']);
-    ({ partie, recit } = recitDrone(partie, 'attendre', 'a'));
-    expect(recit).toEqual([`drone_part ${id('ab')}`]);
-    ({ partie, recit } = recitDrone(partie, 'aller', 'ab'));
-    expect(recit).toEqual([`drone_bloque ${id('bd')}`]);
+    expect(recits(prete(false), [['envoyer', 'x'], ['attendre', 'a'], ['aller', 'ab']])).toEqual([
+      ['drone_envoye'], [`drone_part ${id('ab')}`], [`drone_bloque ${id('bd')}`],
+    ]);
   });
   it('entendu : derrière une porte ouverte, son moteur gronde à chaque action ; hors de portée, rien', () => {
-    let { partie, recit } = recitDrone(prete(true), 'envoyer', 'x');
-    ({ partie, recit } = recitDrone(partie, 'attendre', 'a'));
-    expect(recit).toEqual([`drone_part ${id('ab')}`]);
-    ({ partie, recit } = recitDrone(partie, 'attendre', 'a'));
-    expect(recit).toEqual([`drone_entendu ${id('ab')}`]);
-    ({ partie, recit } = recitDrone(partie, 'attendre', 'a'));
-    expect(recit).toEqual([]);
+    expect(recits(prete(true), [['envoyer', 'x'], ['attendre', 'a'], ['attendre', 'a'], ['attendre', 'a']]).slice(1)).toEqual([
+      [`drone_part ${id('ab')}`], [`drone_entendu ${id('ab')}`], [],
+    ]);
   });
   it('la créature qu’on entend suivre le grondement : le récit fait le lien', () => {
     const monde: DefMonde = {
@@ -166,12 +168,7 @@ describe('récit du drone à chaque action (retours du porteur, PR #300)', () =>
     expect(recits).toContain('creature_attiree');
   });
   it('vu : il arrive dans la pièce du passager, puis repart', () => {
-    let partie = pas(prete(true), 'envoyer', 'x');
-    let recit: string[];
-    ({ partie, recit } = recitDrone(partie, 'aller', 'ab'));
-    expect(recit).toEqual([`drone_arrive ${id('ab')}`]);
-    ({ partie, recit } = recitDrone(partie, 'attendre', 'b'));
-    expect(recit).toEqual([`drone_roule ${id('bd')}`]);
+    expect(recits(pas(prete(true), 'envoyer', 'x'), [['aller', 'ab'], ['attendre', 'b']])).toEqual([[`drone_arrive ${id('ab')}`], [`drone_roule ${id('bd')}`]]);
   });
 });
 
