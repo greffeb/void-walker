@@ -762,7 +762,7 @@ describe('compositions', () => {
       const avant = chemins.slice(0, chemins.indexOf(creature.slice(0, creature.indexOf('/'))));
       return !avant.some((chemin) => AIDES.includes(chemin));
     });
-    expect(bouchees).toHaveLength(56);
+    expect(bouchees).toHaveLength(60);
     const bouchee = new Set(bouchees.map(({ id }) => id));
     expect(COMPOSITIONS_PUBLIEES).toEqual(CATALOGUE.compositions.filter(({ id, refus }) => refus === null && !bouchee.has(id) && !SANS_PREUVE_DRONE.includes(id)).map(({ id }) => id));
   });

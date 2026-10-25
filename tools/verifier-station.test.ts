@@ -484,12 +484,12 @@ function cacheMemoire(): CacheVerdicts & { readonly cles: string[] } {
 describe('publication : ce que check:stations doit prouver (#152, #180)', () => {
   // La preuve du catalogue entier est faite par check:stations seul (#180) : il échoue si une publiée n'est pas prouvée ou si
   // une prouvée n'est pas publiée. Ici, la règle de publication elle-même, sans recherche.
-  it('publiées : toutes les compositions permises sauf les bouchées ; 850 compositions, 524 publiées en chaîne et 234 en ordre libre', () => {
+  it('publiées : toutes les compositions permises sauf les bouchées et celles sans preuve de drone ; 850 compositions, 516 publiées en chaîne et 224 en ordre libre, hors compositions sans preuve de drone', () => {
     expect(CATALOGUE.compositions).toHaveLength(850);
     const attendues = CATALOGUE.compositions.filter((composition) => composition.refus === null && !bouchee(composition) && !SANS_PREUVE_DRONE.includes(composition.id)).map((composition) => composition.id);
     expect(COMPOSITIONS_PUBLIEES).toEqual(attendues);
-    expect(COMPOSITIONS_PUBLIEES.filter((id) => !id.startsWith('ol-'))).toHaveLength(524);
-    expect(COMPOSITIONS_PUBLIEES.filter((id) => id.startsWith('ol-'))).toHaveLength(234);
+    expect(COMPOSITIONS_PUBLIEES.filter((id) => !id.startsWith('ol-'))).toHaveLength(516);
+    expect(COMPOSITIONS_PUBLIEES.filter((id) => id.startsWith('ol-'))).toHaveLength(224);
   });
 
   // Quelques compositions choisies : une chaîne, une bouchée, un ordre libre, une refusée.
@@ -606,5 +606,5 @@ describe('lots et verdicts gardés de check:stations (#180)', () => {
     for (const composition of dansLeLot(CATALOGUE.compositions, lot)) {
       expect(cache.cles.some((cle) => cle.startsWith(`composition ${composition.id} `) && cle.includes(JSON.stringify(empreintesDe(composition))))).toBe(true);
     }
-  }, 120000);
+  }, 300000); // M-12 prouvé place par place (#270) : le lot 5/60 en a plusieurs.
 });

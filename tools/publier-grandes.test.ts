@@ -14,6 +14,12 @@ describe('protection des variantes publiées', () => {
     verifierDiversite(avant, ['g4-a-7', 'g4-a-8'], 2);
   });
 
+  it('une perte acceptée nommément passe ; les autres restent refusées (#270)', () => {
+    const avant = ['g3-a-0', 'g3-a-1', 'g3-b-0'];
+    verifierDiversite(avant, ['g4-b-3'], 2, new Set([`g${VERSION_GENERATEUR}-a`]));
+    expect(() => verifierDiversite(avant, [], 2, new Set([`g${VERSION_GENERATEUR}-a`]))).toThrow(`g${VERSION_GENERATEUR}-b`);
+  });
+
   it('un doublon ne remplace pas une variante distincte', () => {
     expect(() => verifierDiversite(['g3-a-0', 'g3-a-1'], ['g4-a-7', 'g4-a-7'], 2)).toThrow(`g${VERSION_GENERATEUR}-a`);
   });
