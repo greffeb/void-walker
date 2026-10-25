@@ -18,7 +18,7 @@ import { CATALOGUE } from './catalogue';
 import { executerParcours, trouverOption } from './rejouer-parcours';
 import { fileURLToPath } from 'node:url';
 import { empreinteCode, ouvrirCache, purgerCache } from './empreinte-code';
-import { dansLeLot, lancerSousLots, lireOptionsLots, type Lot } from './lots';
+import { dansLeLot, lancerEtRecopier, lireOptionsLots, type Lot } from './lots';
 import { isMainModule } from './repo-files';
 
 const VERSION = 'verifier-station';
@@ -876,15 +876,9 @@ async function principal(): Promise<void> {
       `--plans=${tirages}`,
       ...(sansCache ? ['--sans-cache'] : []),
     ];
-    const sorties = await lancerSousLots(fileURLToPath(import.meta.url), lot, parts, passer);
-    for (const { sortie, erreurs } of sorties) {
-      process.stdout.write(sortie);
-      process.stderr.write(erreurs);
-    }
+    const echecs = await lancerEtRecopier(fileURLToPath(import.meta.url), lot, parts, passer);
     if (complet) console.log(JSON.stringify({ tirer: 'catalogue.tirer', ...mesurerTirages(TIRAGES_PLANS_COMPLET) }));
-    const echecs = sorties.filter(({ code }) => code !== 0).length;
     console.error(`check:stations : lot ${lot.numero}/${lot.total} en ${parts} processus, ${duree()}${echecs > 0 ? `, ${echecs} processus en échec` : ''}.`);
-    if (echecs > 0) process.exitCode = 1;
     return;
   }
 

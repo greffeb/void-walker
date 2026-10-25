@@ -85,7 +85,7 @@ import {
 import { fileURLToPath } from 'node:url';
 import { CATALOGUE } from './catalogue';
 import { empreinteCode, ouvrirCache, purgerCache } from './empreinte-code';
-import { dansLeLot, lancerSousLots, lireOptionsLots, type Lot } from './lots';
+import { dansLeLot, lancerEtRecopier, lireOptionsLots, type Lot } from './lots';
 import { isMainModule } from './repo-files';
 import { trouverOption } from './rejouer-parcours';
 import { cloisonsDuCarrefour, stationDeReference, verifierLibre, verifierStation, type CacheVerdicts } from './verifier-station';
@@ -977,17 +977,9 @@ async function principal(): Promise<void> {
   const { lot, parts, reste } = lireOptionsLots(argumentsCli);
   const debut = Date.now();
   if (parts > 1) {
-    const sorties = await lancerSousLots(fileURLToPath(import.meta.url), lot, parts, reste);
-    for (const { sortie, erreurs } of sorties) {
-      process.stdout.write(sortie);
-      process.stderr.write(erreurs);
-    }
-    const echecs = sorties.filter(({ code }) => code !== 0).length;
+    const echecs = await lancerEtRecopier(fileURLToPath(import.meta.url), lot, parts, reste);
     console.log(`check:texts : lot ${lot.numero}/${lot.total} en ${parts} processus, ${Math.round((Date.now() - debut) / 1000)} s.`);
-    if (echecs > 0) {
-      console.error(`\n${echecs} processus en échec : erreurs dans les textes (docs/contrats/C-07-textes.md §4).`);
-      process.exitCode = 1;
-    }
+    if (echecs > 0) console.error(`\n${echecs} processus en échec : erreurs dans les textes (docs/contrats/C-07-textes.md §4).`);
     return;
   }
   let cache: CacheVerdicts | undefined;
