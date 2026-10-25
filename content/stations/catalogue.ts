@@ -86,6 +86,27 @@ export interface Composition {
   readonly refus: string | null;
 }
 
+/**
+ * Compositions permises et non bouchées dont une place du drone n'a pas de preuve dans la limite du vérificateur (#270) : un
+ * drone posé loin multiplie les états (M-04, M-05, M-10, M-11, créature dans la réserve de M-12). Retirées du tirage.
+ */
+export const SANS_PREUVE_DRONE: readonly string[] = [
+  'm10-m12-m03-entrepot',
+  'm10-m12-m03-stockage',
+  'm10-m12-m06-entrepot',
+  'm10-m12-m06-stockage',
+  'ol-m04-m12-m03-stockage',
+  'ol-m04-m12-m06-stockage',
+  'ol-m05-m12-m03-tri',
+  'ol-m05-m12-m06-tri',
+  'ol-m10-m12-m03-entrepot',
+  'ol-m10-m12-m03-stockage',
+  'ol-m10-m12-m06-entrepot',
+  'ol-m10-m12-m06-stockage',
+  'ol-m11-m12-m03-stockage',
+  'ol-m11-m12-m06-stockage',
+];
+
 /** Compositions dont toutes les graines sont prouvées, seules proposées au joueur. */
 export const COMPOSITIONS_PUBLIEES: readonly string[] = [
   'm01-m02-m03-reserve',
@@ -494,12 +515,8 @@ export const COMPOSITIONS_PUBLIEES: readonly string[] = [
   'm10-m11-m06-embarquement',
   'm10-m11-m06-entrepot',
   'm10-m11-m06-remise',
-  'm10-m12-m03-entrepot',
   'm10-m12-m03-reserve',
-  'm10-m12-m03-stockage',
   'm10-m12-m06-embarquement',
-  'm10-m12-m06-entrepot',
-  'm10-m12-m06-stockage',
   'm11-m01-m03-remise',
   'm11-m01-m03-reserve',
   'm11-m01-m06-embarquement',
@@ -554,16 +571,12 @@ export const COMPOSITIONS_PUBLIEES: readonly string[] = [
   'm11-m12-m06-embarquement',
   'm11-m12-m06-remise',
   'm11-m12-m06-stockage',
-  'm12-m01-m03-palier',
   'm12-m01-m03-reserve',
   'm12-m01-m03-stockage',
   'm12-m01-m06-embarquement',
-  'm12-m01-m06-palier',
   'm12-m01-m06-stockage',
-  'm12-m02-m03-atelier',
   'm12-m02-m03-reserve',
   'm12-m02-m03-stockage',
-  'm12-m02-m06-atelier',
   'm12-m02-m06-embarquement',
   'm12-m02-m06-stockage',
   'm12-m03-reserve',
@@ -716,10 +729,8 @@ export const COMPOSITIONS_PUBLIEES: readonly string[] = [
   'ol-m04-m11-m06-remise',
   'ol-m04-m12-m03-observation',
   'ol-m04-m12-m03-reserve',
-  'ol-m04-m12-m03-stockage',
   'ol-m04-m12-m06-embarquement',
   'ol-m04-m12-m06-observation',
-  'ol-m04-m12-m06-stockage',
   'ol-m05-m07-m03-reserve',
   'ol-m05-m07-m03-soute',
   'ol-m05-m07-m03-tri',
@@ -752,10 +763,8 @@ export const COMPOSITIONS_PUBLIEES: readonly string[] = [
   'ol-m05-m11-m06-tri',
   'ol-m05-m12-m03-reserve',
   'ol-m05-m12-m03-stockage',
-  'ol-m05-m12-m03-tri',
   'ol-m05-m12-m06-embarquement',
   'ol-m05-m12-m06-stockage',
-  'ol-m05-m12-m06-tri',
   'ol-m07-m08-m03-magasin',
   'ol-m07-m08-m03-reserve',
   'ol-m07-m08-m03-soute',
@@ -834,18 +843,12 @@ export const COMPOSITIONS_PUBLIEES: readonly string[] = [
   'ol-m10-m11-m06-embarquement',
   'ol-m10-m11-m06-entrepot',
   'ol-m10-m11-m06-remise',
-  'ol-m10-m12-m03-entrepot',
   'ol-m10-m12-m03-reserve',
-  'ol-m10-m12-m03-stockage',
   'ol-m10-m12-m06-embarquement',
-  'ol-m10-m12-m06-entrepot',
-  'ol-m10-m12-m06-stockage',
   'ol-m11-m12-m03-remise',
   'ol-m11-m12-m03-reserve',
-  'ol-m11-m12-m03-stockage',
   'ol-m11-m12-m06-embarquement',
   'ol-m11-m12-m06-remise',
-  'ol-m11-m12-m06-stockage',
 ];
 
 /**

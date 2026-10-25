@@ -44,20 +44,20 @@ describe('chemin et places du drone', () => {
     expect(cheminDrone(MONDE, 'x', 'd')).toEqual([]);
     expect(cheminDrone(MONDE, 'x', 'g')).toBeNull();
   });
-  it('places : avant l’obstacle, hors du repaire, sans vide ni cloison qu’on n’ouvre qu’au-delà', () => {
-    expect(placesDuDrone(MONDE, 'x')).toEqual(['a', 'b', 'c']);
-    expect(placesDuDrone({ ...MONDE, creature: { piece: 'f' } }, 'x')).toEqual(['a', 'b', 'c', 'e']);
+  it('places : avant l’obstacle, hors du départ (GP-04) et du repaire, sans vide ni cloison qu’on n’ouvre qu’au-delà', () => {
+    expect(placesDuDrone(MONDE, 'x')).toEqual(['b', 'c']);
+    expect(placesDuDrone({ ...MONDE, creature: { piece: 'f' } }, 'x')).toEqual(['b', 'c', 'e']);
   });
   it('une cloison qu’on déverrouille avant l’obstacle ouvre une place', () => {
     const monde = avecObjets(MONDE.objets.map((objet) => (objet.id === 'k' ? { ...objet, piece: 'c' } : objet)));
-    expect(placesDuDrone(monde, 'x')).toEqual(['a', 'b', 'c', 'h']);
+    expect(placesDuDrone(monde, 'x')).toEqual(['b', 'c', 'h']);
     // Cloison de l'ordre libre : jamais franchie pour poser le drone, sinon l'ordre ne serait plus libre.
-    expect(placesDuDrone(monde, 'x', new Set(['bh']))).toEqual(['a', 'b', 'c']);
-    expect(new Set(Array.from({ length: 60 }, (_, graine) => placerDrones(monde, graine, new Set(['bh'])).objets.find((objet) => objet.id === 'x')?.piece))).toEqual(new Set(['a', 'b', 'c']));
+    expect(placesDuDrone(monde, 'x', new Set(['bh']))).toEqual(['b', 'c']);
+    expect(new Set(Array.from({ length: 60 }, (_, graine) => placerDrones(monde, graine, new Set(['bh'])).objets.find((objet) => objet.id === 'x')?.piece))).toEqual(new Set(['b', 'c']));
   });
   it('placerDrones tire parmi les places, de façon stable', () => {
     const tirees = Array.from({ length: 200 }, (_, graine) => placerDrones(MONDE, graine).objets.find((objet) => objet.id === 'x')?.piece);
-    expect(new Set(tirees)).toEqual(new Set(['a', 'b', 'c']));
+    expect(new Set(tirees)).toEqual(new Set(['b', 'c']));
     expect(placerDrones(MONDE, 17)).toEqual(placerDrones(MONDE, 17));
     expect(placerDrones({ ...MONDE, objets: MONDE.objets.filter((objet) => objet.drone === undefined && objet.obstacle === undefined) }, 3).objets).toHaveLength(1);
   });

@@ -1,4 +1,4 @@
-import { COMPOSITIONS_PUBLIEES, creerCatalogue, MORCEAUX, PAIRES, VERSION_GENERATEUR, type EntreeMonde } from '../content';
+import { COMPOSITIONS_PUBLIEES, SANS_PREUVE_DRONE, creerCatalogue, MORCEAUX, PAIRES, VERSION_GENERATEUR, type EntreeMonde } from '../content';
 import { assemblerStation, empreinte, jouer, nouvellePartie, observer, type DefMonde, type Partie } from '../engine';
 import { CATALOGUE } from './catalogue';
 import { dansLeLot, LOT_UNIQUE, type Lot } from './lots';
@@ -457,10 +457,10 @@ describe('catalogue : la preuve de check:stations, outil et règles (#152, #180)
 });
 
 /**
- * Compositions bouchées (spec L4 §4) : en chaîne, créature au palier ou à l'atelier sans M-04, M-07, M-08, M-10 ni M-12 avant ;
- * M-12 permet de s'en débarrasser, prouvé par check:stations (#232).
+ * Compositions bouchées (spec L4 §4) : en chaîne, créature au palier ou à l'atelier sans M-04, M-07, M-08 ni M-10 avant. M-12
+ * n'en fait plus partie (#270) : son drone se tait une fois le chariot rangé et n'attire plus la créature en arrière.
  */
-const AIDES = ['m-04', 'm-07', 'm-08', 'm-10', 'm-12'];
+const AIDES = ['m-04', 'm-07', 'm-08', 'm-10'];
 function bouchee({ forme, chemins, creature }: (typeof CATALOGUE.compositions)[number]): boolean {
   if (forme !== 'chaine' || (creature !== 'm-01/p-palier' && creature !== 'm-02/p-atelier')) return false;
   return !chemins.slice(0, chemins.indexOf(creature.slice(0, creature.indexOf('/')))).some((chemin) => AIDES.includes(chemin));
@@ -486,7 +486,7 @@ describe('publication : ce que check:stations doit prouver (#152, #180)', () => 
   // une prouvée n'est pas publiée. Ici, la règle de publication elle-même, sans recherche.
   it('publiées : toutes les compositions permises sauf les bouchées ; 850 compositions, 524 publiées en chaîne et 234 en ordre libre', () => {
     expect(CATALOGUE.compositions).toHaveLength(850);
-    const attendues = CATALOGUE.compositions.filter((composition) => composition.refus === null && !bouchee(composition)).map((composition) => composition.id);
+    const attendues = CATALOGUE.compositions.filter((composition) => composition.refus === null && !bouchee(composition) && !SANS_PREUVE_DRONE.includes(composition.id)).map((composition) => composition.id);
     expect(COMPOSITIONS_PUBLIEES).toEqual(attendues);
     expect(COMPOSITIONS_PUBLIEES.filter((id) => !id.startsWith('ol-'))).toHaveLength(524);
     expect(COMPOSITIONS_PUBLIEES.filter((id) => id.startsWith('ol-'))).toHaveLength(234);

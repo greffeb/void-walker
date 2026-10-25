@@ -75,7 +75,8 @@ export function placesDuDrone(monde: DefMonde, drone: string, fermees: ReadonlyS
   }
   return monde.pieces.map((piece) => piece.id).filter((piece) => {
     // Jamais dans le repaire de la créature : on ne l'y lancerait pas sans risque, et la station doit garder un chemin sûr (D-084).
-    if (!atteintes.has(piece) || piece === obstacle.piece || piece === monde.creature?.piece) return false;
+    // Ni au départ, qui reste vide (GP-04).
+    if (!atteintes.has(piece) || piece === obstacle.piece || piece === monde.creature?.piece || piece === monde.depart) return false;
     const chemin = cheminDrone(monde, drone, piece);
     if (chemin === null) return false;
     let ici = piece;

@@ -587,7 +587,7 @@ export function verifierCatalogue(catalogue: Catalogue, options: OptionsVerifica
  * Une station à drone vaut pour toutes ses graines, donc pour chaque place où l'assemblage peut tirer le drone (#270) : chacune
  * est prouvée, jusqu'à la première qui échoue ; états et durées s'additionnent, et le diagnostic nomme la place en échec.
  */
-export function verifierChaquePlace<Rapport extends RapportStation>(entree: EntreeMonde, verifier: (entree: EntreeMonde) => Rapport): Rapport {
+export function verifierChaquePlace<Rapport extends RapportStation>(entree: EntreeMonde, verifier: (entree: EntreeMonde) => Rapport, construire = true): Rapport {
   const drone = entree.monde.objets.find((objet) => objet.drone !== undefined);
   const places = drone === undefined ? [] : placesDuDrone(entree.monde, drone.id, new Set(cloisonsDuCarrefour(entree.monde)));
   if (drone === undefined || places.length === 0) return verifier(entree);
@@ -595,7 +595,7 @@ export function verifierChaquePlace<Rapport extends RapportStation>(entree: Entr
   for (const place of places) {
     const ici = { ...entree, monde: avecDroneEn(entree.monde, drone.id, place) };
     // D'abord un parcours construit par mécanismes et rejoué par les vraies règles (#292) ; la recherche complète seulement à défaut.
-    const construit = prouverParConstruction(ici);
+    const construit = construire ? prouverParConstruction(ici) : null;
     const rapport = construit === null ? verifier(ici) : ({ ...construit, ordres: ['prouvee', 'prouvee'], coupees: true } as unknown as Rapport);
     total = total === null ? rapport : { ...rapport, etats: total.etats + rapport.etats, secondes: total.secondes + rapport.secondes };
     if (rapport.verdict !== 'prouvee') return { ...total, diagnostic: `Drone en ${place} : ${rapport.diagnostic}` };
@@ -666,8 +666,10 @@ export function verifierComposition(catalogue: Catalogue, composition: Compositi
   const station = stationDeReference(catalogue, composition.id);
   if ('refus' in station) return sansVerification('non_prouvee', station.refus);
   const recherche = optionsDe(composition, options);
-  const libre = composition.forme === 'libre' ? verifierChaquePlace(station.entree, (entree) => verifierLibre(entree, recherche)) : null;
-  const { verdict, etats, secondes, diagnostic, parcours } = libre ?? verifierChaquePlace(station.entree, (entree) => verifierStation(entree, recherche));
+  // Un plafond demandé explicitement demande une recherche : pas de parcours construit.
+  const construire = options.maxEtats === undefined;
+  const libre = composition.forme === 'libre' ? verifierChaquePlace(station.entree, (entree) => verifierLibre(entree, recherche), construire) : null;
+  const { verdict, etats, secondes, diagnostic, parcours } = libre ?? verifierChaquePlace(station.entree, (entree) => verifierStation(entree, recherche), construire);
   const actions = parcours === null ? null : parcours.etapes.length;
   const ordres = libre === null ? {} : { ordres: libre.ordres };
   return { composition: composition.id, verdict, graine: station.graine, etats, secondes, actions, diagnostic, empreintes, ...ordres };

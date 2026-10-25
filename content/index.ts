@@ -11,6 +11,7 @@ export { MORCEAUX, type EntreeMorceau } from './morceaux';
 export {
   COMPOSITIONS_CONTROLEES,
   COMPOSITIONS_PUBLIEES,
+  SANS_PREUVE_DRONE,
   creerCatalogue,
   ETENDUE_TERRITOIRE,
   GRAINE_GRANDE_MAX,

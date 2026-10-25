@@ -1,4 +1,4 @@
-import { COMPOSITIONS_PUBLIEES, creerCatalogue, MORCEAUX, type EntreeMonde } from '../content';
+import { COMPOSITIONS_PUBLIEES, SANS_PREUVE_DRONE, creerCatalogue, MORCEAUX, type EntreeMonde } from '../content';
 import { assemblerStation, empreinte } from '../engine';
 import { CATALOGUE } from './catalogue';
 import { executerParcours } from './rejouer-parcours';
@@ -43,14 +43,14 @@ describe.runIf(COMPLET)('catalogue vérifié à la construction (#152), en entie
     lignes = verifierCatalogue(CATALOGUE);
   }, 900000);
 
-  it('publiées prouvées, les autres sans sortie sûre : en chaîne, palier ou atelier sans M-04, M-07, M-08, M-10 ni M-12 avant (spec L4 §4, #232) ; en ordre libre, ces places écartées (spec L5 §3.2) ; l’ensemble prouvé égale les compositions publiées', () => {
-    const AIDES = ['m-04', 'm-07', 'm-08', 'm-10', 'm-12'];
+  it('publiées prouvées, les autres sans sortie sûre : en chaîne, palier ou atelier sans M-04, M-07, M-08 ni M-10 avant (spec L4 §4, #270) ; en ordre libre, ces places écartées (spec L5 §3.2) ; l’ensemble prouvé égale les compositions publiées', () => {
+    const AIDES = ['m-04', 'm-07', 'm-08', 'm-10'];
     const bouchee = ({ forme, chemins, creature }: (typeof CATALOGUE.compositions)[number]): boolean => {
       if (forme !== 'chaine' || (creature !== 'm-01/p-palier' && creature !== 'm-02/p-atelier')) return false;
       return !chemins.slice(0, chemins.indexOf(creature.slice(0, creature.indexOf('/')))).some((chemin) => AIDES.includes(chemin));
     };
     expect(lignes.map((ligne) => [ligne.composition, ligne.verdict])).toEqual(
-      CATALOGUE.compositions.map((composition) => [composition.id, composition.refus !== null ? 'refusee' : bouchee(composition) ? 'sans_sortie_sure' : 'prouvee']),
+      CATALOGUE.compositions.map((composition) => [composition.id, composition.refus !== null ? 'refusee' : bouchee(composition) ? 'sans_sortie_sure' : SANS_PREUVE_DRONE.includes(composition.id) ? 'non_prouvee' : 'prouvee']),
     );
     expect(lignes.filter((ligne) => ligne.verdict === 'prouvee').map((ligne) => ligne.composition)).toEqual(COMPOSITIONS_PUBLIEES);
     for (const ligne of lignes) {
@@ -59,9 +59,11 @@ describe.runIf(COMPLET)('catalogue vérifié à la construction (#152), en entie
         expect(ligne.diagnostic).toContain('D-268');
         continue;
       }
-      expect(ligne.etats).toBeGreaterThan(0);
-      if (ligne.verdict === 'prouvee') expect(ligne.diagnostic).toMatch(/prouvée en \d+ actions/);
-      else expect(ligne.diagnostic).toContain('Aucune évacuation sans dé ni blessure');
+      // Une station à drone se prouve d'abord par un parcours construit, sans recherche ni état compté (#270, #292).
+      if (!ligne.diagnostic.includes('construit')) expect(ligne.etats).toBeGreaterThan(0);
+      if (ligne.verdict === 'prouvee') expect(ligne.diagnostic).toMatch(/prouvée en \d+ actions|construit/);
+      else if (ligne.verdict === 'sans_sortie_sure') expect(ligne.diagnostic).toContain('Aucune évacuation sans dé ni blessure');
+      else expect(ligne.diagnostic).toContain('Drone en');
       // Ordre libre : les deux ordres de préparation prouvés (spec L5 §4.1).
       if (ligne.composition.startsWith('ol-')) expect(ligne.ordres).toEqual(['prouvee', 'prouvee']);
       else expect(ligne.ordres).toBeUndefined();
