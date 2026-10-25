@@ -422,18 +422,20 @@ describe('mélanges des chemins d’AR-01 (spec L4 §5)', () => {
 
   it('MX-04, m04-m09-m03-reserve : sans gravité, verser est refusé sans coût ; gravité rétablie, il redevient possible', () => {
     const monde = stationDe('m04-m09-m03-reserve');
-    const pas = suite(monde, depart(monde), [...parM04('quartiers', false), ['ouvrir', 'sas_ouest'], ['aller', 'sas_ouest'], ['aller', 'transfert']]);
+    // Le sas d'entrée prend le nom de sa place sur la carte (#296).
+    const sas = monde.pieces.find((piece) => piece.id === 'm-09/p-sas-ouest')?.nom ?? 'sas_ouest';
+    const pas = suite(monde, depart(monde), [...parM04('quartiers', false), ['ouvrir', sas], ['aller', sas], ['aller', 'transfert']]);
     sansRisque(pas);
     const coupee = fin(pas);
     expect(coupee.etat.apesanteur).toContain('m-09/p-transfert');
-    expect(option(monde, coupee, 'verser', 'burette', 'sas_ouest')).toMatchObject({ disponible: false, raison: 'sans_gravite' });
-    expect(refusee(monde, coupee, 'verser', 'burette', 'sas_ouest')).toBe('sans_gravite');
+    expect(option(monde, coupee, 'verser', 'burette', sas)).toMatchObject({ disponible: false, raison: 'sans_gravite' });
+    expect(refusee(monde, coupee, 'verser', 'burette', sas)).toBe('sans_gravite');
 
-    const retour = suite(monde, coupee, [['aller', 'sas_ouest'], ['retablir', 'interrupteur_gravite'], ['aller', 'transfert']]);
+    const retour = suite(monde, coupee, [['aller', sas], ['retablir', 'interrupteur_gravite'], ['aller', 'transfert']]);
     const retablie = fin(retour);
     expect(retablie.etat.apesanteur).toEqual([]);
-    expect(option(monde, retablie, 'verser', 'burette', 'sas_ouest')).toMatchObject({ disponible: true });
-    const versee = engager(monde, retablie, 'verser', 'burette', 'sas_ouest');
+    expect(option(monde, retablie, 'verser', 'burette', sas)).toMatchObject({ disponible: true });
+    const versee = engager(monde, retablie, 'verser', 'burette', sas);
     sansRisque([...retour, versee]);
     expect(versee.partie.etat.huile).toContainEqual({ liaison: 'm-09/l-sas-ouest-transfert', piece: 'm-09/p-transfert' });
   });
