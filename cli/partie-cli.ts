@@ -102,6 +102,14 @@ export function analyserArguments(argv: readonly string[]): Arguments {
   return { positionnels, options };
 }
 
+const OPTIONS = new Set(['partie', 'station', 'monde', 'graine', 'commentaire', 'ids']);
+
+/** Refus d'une option inconnue, faute de frappe comprise : elle ne doit pas jouer sur la partie par défaut (#281). */
+function optionInconnue(options: Readonly<Record<string, string>>): string | null {
+  const inconnue = Object.keys(options).find((option) => !OPTIONS.has(option));
+  return inconnue === undefined ? null : `Option inconnue : --${inconnue}. Options : --partie, --station, --monde, --graine, --commentaire, --ids.`;
+}
+
 function cheminPartie(options: Readonly<Record<string, string>>): string {
   return options.partie !== undefined && options.partie !== '' ? options.partie : PARTIE_PAR_DEFAUT;
 }
@@ -124,6 +132,8 @@ function mondeEnregistre(contenu: string | null): string | null {
  */
 export function choisirEntree(argv: readonly string[], catalogue: Catalogue, es: EntreesSorties): EntreeMonde | string {
   const { positionnels, options } = analyserArguments(argv);
+  const inconnue = optionInconnue(options);
+  if (inconnue !== null) return inconnue;
   const { station, monde } = options;
   const hasard = (): number => es.graineAleatoire();
   if (station === '') return 'Indiquez la station : --station <id>.';
@@ -260,6 +270,8 @@ function suite(contexte: Contexte, chemin: string, resultat: Resultat): Sortie {
 
 export function executer(argv: readonly string[], contexte: Contexte): Sortie {
   const { positionnels, options } = analyserArguments(argv);
+  const inconnue = optionInconnue(options);
+  if (inconnue !== null) return { lignes: [inconnue], code: 1 };
   const [commande = 'aide', ...reste] = positionnels;
   const chemin = cheminPartie(options);
   const { monde, textes } = contexte;
