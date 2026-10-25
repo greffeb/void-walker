@@ -872,7 +872,7 @@ export const COMPOSITIONS_CONTROLEES: readonly string[] = [
   'm12-m03-stockage',
   'ol-m02-m08-m06-magasin',
   'ol-m05-m10-m03-tri',
-  'ol-m05-m12-m03-tri',
+  'ol-m05-m12-m03-reserve',
   'ol-m07-m11-m06-soute',
 ];
 

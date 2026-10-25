@@ -79,10 +79,13 @@ export function placesDuDrone(monde: DefMonde, drone: string, fermees: ReadonlyS
   const ouvrableAvant = (liaison: DefLiaison): boolean =>
     (liaison.manoeuvre === undefined || atteintes.has(liaison.manoeuvre))
     && (liaison.verrouillee !== true || monde.objets.some((objet) => objet.deverrouille === liaison.id && atteintes.has(objet.piece) && atteint(objet.exige)));
+  const pillees = new Set(monde.pieces.filter((piece) => piece.pillee === true).map((piece) => piece.id));
   return monde.pieces.map((piece) => piece.id).filter((piece) => {
     // Jamais dans le repaire de la créature : on ne l'y lancerait pas sans risque, et la station doit garder un chemin sûr (D-084).
     // Ni au départ, qui reste vide (GP-04).
     if (!atteintes.has(piece) || piece === obstacle.piece || piece === monde.creature?.piece || piece === monde.depart) return false;
+    // Ni dans une salle pillée, qui reste vide, ni dans une salle de butin, qui n'a que son objet (spec 2026-10-18 §6.6).
+    if (pillees.has(piece) || monde.objets.some((objet) => objet.butin === true && objet.piece === piece)) return false;
     const chemin = cheminDrone(monde, drone, piece);
     if (chemin === null) return false;
     let ici = piece;

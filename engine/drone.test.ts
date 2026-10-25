@@ -62,6 +62,15 @@ describe('chemin et places du drone', () => {
     const manoeuvre: DefMonde = { ...MONDE, liaisons: MONDE.liaisons.map((liaison) => (liaison.id === 'bd' ? { ...liaison, manoeuvre: 'f' } : liaison)), creature: { piece: 'g' } };
     expect(placesDuDrone(manoeuvre, 'x')).toEqual(['c', 'e']);
   });
+  it('jamais dans une salle pillée, qui reste vide, ni dans une salle de butin (grandes stations, §6.6)', () => {
+    const monde: DefMonde = {
+      ...MONDE,
+      pieces: MONDE.pieces.map((piece) => (piece.id === 'b' ? { ...piece, pillee: true as const } : piece)),
+      objets: [...MONDE.objets, { id: 'trousse', nom: 'trousse', piece: 'e', butin: true, soin: 1 }],
+      creature: { piece: 'f' },
+    };
+    expect(placesDuDrone(monde, 'x')).toEqual(['c']);
+  });
   it('une cloison qu’on déverrouille avant l’obstacle ouvre une place', () => {
     const monde = avecObjets(MONDE.objets.map((objet) => (objet.id === 'k' ? { ...objet, piece: 'c' } : objet)));
     expect(placesDuDrone(monde, 'x')).toEqual(['b', 'c', 'h']);

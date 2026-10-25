@@ -4,6 +4,7 @@ import { poserButin, type ImpasseButin } from './butin';
 import { poserCles, type CleAPoser, type PieceCandidate } from './cles';
 import { generateurDepuisGraine, suivant } from './des';
 import { poserDocuments, type PieceDocument } from './documents';
+import { placerDrones } from './drone';
 import type { CategoriePiece, DefCamera, DefLiaison, DefMonde, DefObjet, DefPiece } from './monde';
 import { tracerPiste } from './piste';
 import { piecesDeCoque, type RectPlan } from './plan';
@@ -304,7 +305,10 @@ function etendreUneFois(monde: DefMonde, station: DefStation, grande: DefStation
     grande.etendue ?? 0,
     sousGraine(graine, 'territoire'),
   );
-  const cles = disperserCles(monde, station, annexes, segments, toutes);
+  // Le drone de manutention (#270) se tire ici, avec les clés : salle de surveillance, butin et documents évitent ensuite sa pièce.
+  const dispersees = disperserCles(monde, station, annexes, segments, toutes);
+  const fermees = new Set((station.commandes ?? []).map((commande) => commande.cloison));
+  const cles = placerDrones({ ...monde, pieces: [...monde.pieces, ...piecesAnnexes], liaisons: toutes, objets: dispersees }, sousGraine(graine, 'drone'), fermees).objets;
   // Post-it du mot de passe (lot 4) : dans une annexe sans clé, ni la salle, ni le repaire, ni un segment de capsule ; ajouté avant
   // le butin, son impasse ne devient pas une salle de butin. Sans place pour lui, pas de salle.
   const surveillee: DefObjet[] = [];
