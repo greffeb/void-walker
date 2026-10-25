@@ -109,12 +109,22 @@ describe('M12 assemblé et joué par les surfaces réelles', () => {
   it('une station avec drone est prouvée à chacune de ses places, et nomme celle qui échoue', () => {
     const rapport = verifierChaquePlace(entree, verifierStation);
     expect(rapport.verdict).toBe('prouvee');
-    expect(rapport.etats).toBeGreaterThan(verifierStation(entree).etats);
     // Atelier muré de l'intérieur : un drone tiré là n'en sortirait jamais.
     const mure = { ...entree, monde: { ...monde, liaisons: monde.liaisons.map((liaison) => (liaison.id === 'm-12/l-galerie-atelier' ? { ...liaison, ouverte: false, manoeuvre: 'm-12/p-atelier' } : liaison)) } };
     const echec = verifierChaquePlace(mure, verifierStation);
     expect(echec.verdict).not.toBe('prouvee');
     expect(echec.diagnostic).toContain('m-12/p-atelier');
+  });
+
+  it('une place se prouve d’abord par un parcours construit et rejoué, sans recherche (#292)', () => {
+    let recherches = 0;
+    const rapport = verifierChaquePlace(entree, (place) => {
+      recherches++;
+      return verifierStation(place);
+    });
+    expect(rapport.verdict).toBe('prouvee');
+    expect(recherches).toBe(0);
+    expect(rapport.diagnostic).toContain('construit');
   });
 
   it('la place du drone change avec la graine et ne tombe jamais au palier', () => {

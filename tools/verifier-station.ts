@@ -1,6 +1,7 @@
-import { assemblerStation, empreinte, nouvellePartie, observer, jouer, type DefMonde, type Des, type EtatPartie, type OptionMenu, type Partie } from '../engine';
+import { assemblerStation, empreinte, menu, nouvellePartie, observer, jouer, type DefMonde, type Des, type EtatPartie, type OptionMenu, type Partie } from '../engine';
 import { generateurDepuisGraine, suivant } from '../engine/des';
 import { avecDroneEn, placesDuDrone } from '../engine/drone';
+import { construireTemoin } from './construire-temoin';
 import {
   COMPOSITIONS_PUBLIEES,
   creerCatalogue,
@@ -592,11 +593,49 @@ export function verifierChaquePlace<Rapport extends RapportStation>(entree: Entr
   if (drone === undefined || places.length === 0) return verifier(entree);
   let total: Rapport | null = null;
   for (const place of places) {
-    const rapport = verifier({ ...entree, monde: avecDroneEn(entree.monde, drone.id, place) });
+    const ici = { ...entree, monde: avecDroneEn(entree.monde, drone.id, place) };
+    // D'abord un parcours construit par mécanismes et rejoué par les vraies règles (#292) ; la recherche complète seulement à défaut.
+    const construit = prouverParConstruction(ici);
+    const rapport = construit === null ? verifier(ici) : ({ ...construit, ordres: ['prouvee', 'prouvee'], coupees: true } as unknown as Rapport);
     total = total === null ? rapport : { ...rapport, etats: total.etats + rapport.etats, secondes: total.secondes + rapport.secondes };
     if (rapport.verdict !== 'prouvee') return { ...total, diagnostic: `Drone en ${place} : ${rapport.diagnostic}` };
   }
   return total ?? verifier(entree);
+}
+
+/**
+ * Preuve sans recherche (#292) : un parcours construit pour chaque ordre des cloisons de l'ordre libre, rejoué par le menu public
+ * jusqu'à l'évacuation sans dé ni blessure, en levant les cloisons dans cet ordre. `null` si l'un manque.
+ */
+function prouverParConstruction(entree: EntreeMonde): RapportStation | null {
+  const debut = performance.now();
+  const cloisons = cloisonsDuCarrefour(entree.monde);
+  if (cloisons.length === 2 && !cloisons.every((cloison) => capsuleCoupee(entree.monde, cloison))) return null;
+  const ordres = cloisons.length === 0 ? [[]] : [cloisons, [...cloisons].reverse()];
+  let longueur = 0;
+  for (const ordre of ordres) {
+    const pas = construireTemoin(entree, ordre);
+    if (pas === null) return null;
+    let partie = nouvellePartie(entree.monde, { version: VERSION, graine: GRAINE });
+    const levees: string[] = [];
+    for (const [action, cible, parametre] of pas) {
+      const option = menu(entree.monde, partie.etat).find(
+        (candidate) => candidate.action === action && candidate.cible.id === cible && (parametre === undefined ? candidate.parametre === undefined : candidate.parametre?.id === parametre),
+      );
+      if (option === undefined || !option.disponible) return null;
+      const avant = partie.etat.verrous ?? [];
+      const resultat = jouer(entree.monde, partie, option.commande);
+      if (resultat.type !== 'engagee' || resultat.tirages.length > 0 || resultat.partie.etat.sante !== 'indemne') return null;
+      partie = resultat.partie;
+      levees.push(...avant.filter((cloison) => !(partie.etat.verrous ?? []).includes(cloison)));
+    }
+    if (partie.etat.fin !== 'evacuation' || (ordre.length > 0 && levees.join() !== ordre.join())) return null;
+    longueur = Math.max(longueur, pas.length);
+  }
+  return {
+    verdict: 'prouvee', etats: 0, secondes: (performance.now() - debut) / 1000, parcours: null, ecartes: { des: 0, blessures: 0 },
+    diagnostic: `Parcours sûr construit et rejoué (${longueur} actions), sans recherche.`,
+  };
 }
 
 /** Une composition, vérifiée sur sa station de référence ; refusée par la table ou par sa place, sans assemblage ni recherche. */
