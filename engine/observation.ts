@@ -1,5 +1,5 @@
 import { CATALOGUE } from './actions';
-import { maintienDrone, range } from './drone';
+import { phaseVisible, range } from './drone';
 import {
   assourdie,
   chambreFroide,
@@ -106,13 +106,14 @@ export function observer(monde: DefMonde, etat: EtatPartie): Observation {
   return {
     ...(etat.drones === undefined ? {} : {
       drones: ici.flatMap((objet) => {
-        const phase = etat.drones?.phases[objet.id];
+        const phase = phaseVisible(monde, etat, objet.id);
         return phase === undefined ? [] : [{ objet: refObjet(monde, objet.id), phase }];
       }),
-      freins: ici.flatMap((objet) => objet.obstacle === undefined || range(etat, objet) ? [] : [{
-        objet: refObjet(monde, objet.id), desserre: maintienDrone(monde, etat, objet.obstacle.maintien),
-      }]),
-      ...(etat.drones.tenue === null ? {} : { poigneeTenue: refObjet(monde, etat.drones.tenue) }),
+      // Le passage que barre un obstacle, puis qu'il libère une fois rangé (#271).
+      obstacles: ici.flatMap((objet) => {
+        const liaison = objet.obstacle === undefined ? undefined : indexer(monde).liaisons.get(objet.obstacle.passage);
+        return liaison === undefined ? [] : [{ objet: refObjet(monde, objet.id), passage: refPassage(monde, etat, liaison, etat.piece), range: range(etat, objet) }];
+      }),
     }),
     // Connecté, dans la salle ou une de ses sous-positions, le passager voit les caméras en direct (lot 4).
     ...(etat.connecte === true && pieceDeCarte(monde, etat.piece) === salleDeSurveillance(monde)

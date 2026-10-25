@@ -2508,7 +2508,7 @@ async function parcoursStation(navigateur: Browser, racine: string, capturer: Ca
  * obstacles avec la baie (`STATION_BAIE`) ; puis une galerie de stations tirées (#153), six par groupe (un ou deux chemins,
  * M-03 ou M-06), chacune d'une composition publiée du groupe tirée au hasard.
  */
-/** M12 : vraie panne, deux réparations distinctes, reprise sauvegardée et coopération sous les règles du moteur. */
+/** M12 (#270) : chariot vu d'abord, drone lancé, renversé en route, redressé et relancé sous menace, reprise sauvegardée, fuite. */
 async function parcoursDrone(navigateur: Browser, racine: string, capturer: CapturerPage, erreurs: string[]): Promise<void> {
   const entree = CATALOGUE.mondes['m-12'];
   if (entree === undefined) throw new Error('Station d’essai M12 absente.');
@@ -2518,27 +2518,31 @@ async function parcoursDrone(navigateur: Browser, racine: string, capturer: Capt
     await page.goto(`${racine}?monde=m-12`);
     await nouvelleDepuisAccueil(page);
     const gestes = gestesDuParcours(entree, PARCOURS_REPARATION_M12.etapes);
-    await rejouer(page, gestes.slice(0, 4));
-    await capturer(page, 'M12 — drone renversé, réparation possible');
+    await rejouer(page, gestes.slice(0, 1));
+    await capturer(page, 'M12 — palier, le chariot barre le passage');
+    await rejouer(page, gestes.slice(1, 3), 1);
+    await capturer(page, 'M12 — drone, envoyer proposé une fois le chariot vu');
+    await rejouer(page, gestes.slice(3, 6), 3);
+    await capturer(page, 'M12 — drone renversé en route, panne entendue');
     await page.locator('.nav-carte').click();
     const carte = page.getByRole('dialog', { name: MOTS_CARTE.titrePlan });
     await carte.locator('.carte-piece').first().waitFor();
-    if ((await carte.locator('.icone-drone').count()) !== 1) erreurs.push('M12 : un seul drone observé attendu sur la carte.');
+    if ((await carte.locator('.icone-drone').count()) !== 1) erreurs.push('M12 : un seul drone attendu sur la carte.');
     if ((await carte.getByRole('button', { name: /drone repéré/ }).count()) !== 1) erreurs.push('M12 : drone absent du nom accessible de la pièce.');
-    await capturer(page, 'Carte — drone renversé observé au poste');
+    await capturer(page, 'Carte — drone suivi en route, renversé dans la galerie');
     await page.keyboard.press('Escape');
     await carte.waitFor({ state: 'detached' });
-    await rejouer(page, gestes.slice(4, 5), 4);
-    await capturer(page, 'M12 — remise sur rail, moteur encore coupé');
+    await rejouer(page, gestes.slice(6, 8), 6);
+    await capturer(page, 'M12 — drone redressé, moteur encore coupé');
     const sauvegardee = await partieEnregistree(page);
     await page.reload();
-    await reprendreDepuisAccueil(page, 5);
-    if ((await partieEnregistree(page)) !== sauvegardee) erreurs.push('M12 : reprise différente après la remise sur rail.');
-    await rejouer(page, gestes.slice(5, 10), 5);
-    await capturer(page, 'M12 — réarmement sur place, blessures conservées');
-    await rejouer(page, gestes.slice(10, 12), 10);
-    await capturer(page, 'M12 — chariot rangé par le passager, coopération accomplie');
-    await rejouer(page, gestes.slice(12), 12);
+    await reprendreDepuisAccueil(page, 8);
+    if ((await partieEnregistree(page)) !== sauvegardee) erreurs.push('M12 : reprise différente après le redressement.');
+    await rejouer(page, gestes.slice(8, 9), 8);
+    await capturer(page, 'M12 — drone relancé sous menace, blessures conservées');
+    await rejouer(page, gestes.slice(9, 11), 9);
+    await capturer(page, 'M12 — chariot tiré par le drone, passage dégagé');
+    await rejouer(page, gestes.slice(11), 11);
     const partie = await partieLue(page);
     if (partie?.etat.fin !== 'evacuation' || partie.etat.sante !== 'critique') erreurs.push('M12 : évacuation réelle après réparation non retrouvée.');
     await capturer(page, 'M12 — évacuation après réparation');
@@ -3484,7 +3488,7 @@ if (isMainModule(import.meta.url)) {
   console.log(
     erreurs.length === 0
       ? process.argv.includes('--drone')
-        ? 'Captures M12 : carte, remise sur rail, reprise sauvegardée, réarmement et évacuation vérifiés dans l’appli.'
+        ? 'Captures M12 : chariot vu, drone suivi sur la carte, redressement, reprise sauvegardée, relance et évacuation vérifiés dans l’appli.'
         : 'Captures : parcours du monde de test, P-C d’AR-01, P-V1 d’AR-02 et stations tirées réussis dans l’appli, reprise au dernier geste, police servie hors ligne.'
       : 'Captures : ÉCHEC.',
   );

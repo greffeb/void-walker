@@ -1,34 +1,102 @@
 import { apercu, exporter, jouer, nouvellePartie, rejouer, type Partie } from './partie';
 import { carte } from './carte';
 import { observer } from './observation';
-import { idPublic, validerMonde, type DefMonde } from './monde';
-import { piecesSansAir } from './etat';
 import { sortiePossible } from './sortie';
+import { idPublic, validerMonde, type DefMonde } from './monde';
+import { avecDroneEn, cheminDrone, placerDrones, placesDuDrone, renverserDrone, sonsDrones } from './drone';
 
 // Noms et identifiants sans rapport avec le morceau : seules les qualités font règle.
+// a (départ, drone) ─ b ─ c ─ d (obstacle z en travers de df) ─ f ; c ─ e (créature) ; b ┄ d fermée ; a ≈ g (vide) ; b ▣ h (cloison
+// que déverrouille k, posé en f, au-delà de l'obstacle).
 const MONDE: DefMonde = {
-  id: 'essai-rail', depart: 'a',
-  pieces: ['a', 'b', 'c', 'd', 'e', 'f'].map((id) => ({ id, nom: id })),
+  id: 'essai-drone', depart: 'a',
+  pieces: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'].map((id) => ({ id, nom: id })),
   liaisons: [
-    { id: 'ac', nom: 'porte', entre: ['a', 'c'], ouverte: true },
     { id: 'ab', nom: 'porte', entre: ['a', 'b'], ouverte: true },
-    { id: 'bd', nom: 'porte', entre: ['b', 'd'], ouverte: true },
+    { id: 'bc', nom: 'porte', entre: ['b', 'c'], ouverte: true },
     { id: 'cd', nom: 'porte', entre: ['c', 'd'], ouverte: true },
     { id: 'ce', nom: 'porte', entre: ['c', 'e'], ouverte: true },
+    { id: 'bd', nom: 'porte', entre: ['b', 'd'], ouverte: false },
     { id: 'df', nom: 'porte', entre: ['d', 'f'], ouverte: true },
+    { id: 'ag', nom: 'vide', entre: ['a', 'g'], ouverte: true, gouffre: true },
+    { id: 'bh', nom: 'porte', entre: ['b', 'h'], ouverte: false, verrouillee: true },
   ],
   positions: [
     { id: 'barre', nom: 'barre', piece: 'd' },
     { id: 'range', nom: 'range', piece: 'd' },
   ],
   objets: [
-    { id: 'x', nom: 'x', piece: 'a', portable: false, drone: { rail: 'ac', poignee: 'y' } },
-    { id: 'y', nom: 'y', piece: 'c', portable: false, poignee: true },
-    { id: 'z', nom: 'z', piece: 'd', portable: false, deplacable: true, position: 'barre',
-      obstacle: { passage: 'df', rangement: 'range', maintien: 'y' } },
+    { id: 'x', nom: 'x', piece: 'a', portable: false, drone: { obstacle: 'z' } },
+    { id: 'z', nom: 'z', piece: 'd', portable: false, deplacable: true, position: 'barre', obstacle: { passage: 'df', rangement: 'range' } },
+    { id: 'k', nom: 'k', piece: 'f', portable: false, deverrouille: 'bh' },
   ],
   creature: { piece: 'e' },
 };
+const avecObjets = (objets: DefMonde['objets']): DefMonde => ({ ...MONDE, objets });
+
+describe('chemin et places du drone', () => {
+  it('valide le monde', () => {
+    expect(validerMonde(MONDE)).toEqual([]);
+  });
+  it('le chemin le plus court passe par les portes fermées, jamais par le vide', () => {
+    expect(cheminDrone(MONDE, 'x', 'a')).toEqual(['ab', 'bd']);
+    expect(cheminDrone(MONDE, 'x', 'e')).toEqual(['ce', 'cd']);
+    expect(cheminDrone(MONDE, 'x', 'd')).toEqual([]);
+    expect(cheminDrone(MONDE, 'x', 'g')).toBeNull();
+  });
+  it('places : avant l’obstacle, hors du départ (GP-04) et du repaire, sans vide ni cloison qu’on n’ouvre qu’au-delà', () => {
+    expect(placesDuDrone(MONDE, 'x')).toEqual(['b', 'c']);
+    expect(placesDuDrone({ ...MONDE, creature: { piece: 'f' } }, 'x')).toEqual(['b', 'c', 'e']);
+  });
+  it('jamais une place dont le chemin passe une porte qu’on n’ouvre qu’au-delà de l’obstacle (revue finale)', () => {
+    // Sans le raccourci b ┄ d, le chemin de b passe b ▣ c, verrouillée par une commande posée au-delà de l'obstacle.
+    const verrouille: DefMonde = {
+      ...MONDE,
+      liaisons: [...MONDE.liaisons.filter((liaison) => liaison.id !== 'bd' && liaison.id !== 'bc'), { id: 'bc', nom: 'porte', entre: ['b', 'c'], ouverte: false, verrouillee: true }, { id: 'ae', nom: 'porte', entre: ['a', 'e'], ouverte: true }],
+      objets: [...MONDE.objets, { id: 'k2', nom: 'k2', piece: 'f', portable: false, deverrouille: 'bc' }],
+      creature: { piece: 'f' },
+    };
+    expect(cheminDrone(verrouille, 'x', 'b')).toEqual(['bc', 'cd']);
+    expect(placesDuDrone(verrouille, 'x')).toEqual(['c', 'e']);
+    // Une porte qui ne se manœuvre que d'une pièce jamais atteinte avant l'obstacle ferme de même le chemin.
+    const manoeuvre: DefMonde = { ...MONDE, liaisons: MONDE.liaisons.map((liaison) => (liaison.id === 'bd' ? { ...liaison, manoeuvre: 'f' } : liaison)), creature: { piece: 'g' } };
+    expect(placesDuDrone(manoeuvre, 'x')).toEqual(['c', 'e']);
+  });
+  it('jamais dans une salle pillée, qui reste vide, ni dans une salle de butin (grandes stations, §6.6)', () => {
+    const monde: DefMonde = {
+      ...MONDE,
+      pieces: MONDE.pieces.map((piece) => (piece.id === 'b' ? { ...piece, pillee: true as const } : piece)),
+      objets: [...MONDE.objets, { id: 'trousse', nom: 'trousse', piece: 'e', butin: true, soin: 1 }],
+      creature: { piece: 'f' },
+    };
+    expect(placesDuDrone(monde, 'x')).toEqual(['c']);
+  });
+  it('une cloison qu’on déverrouille avant l’obstacle ouvre une place', () => {
+    const monde = avecObjets(MONDE.objets.map((objet) => (objet.id === 'k' ? { ...objet, piece: 'c' } : objet)));
+    expect(placesDuDrone(monde, 'x')).toEqual(['b', 'c', 'h']);
+    // Cloison de l'ordre libre : jamais franchie pour poser le drone, sinon l'ordre ne serait plus libre.
+    expect(placesDuDrone(monde, 'x', new Set(['bh']))).toEqual(['b', 'c']);
+    expect(new Set(Array.from({ length: 60 }, (_, graine) => placerDrones(monde, graine, new Set(['bh'])).objets.find((objet) => objet.id === 'x')?.piece))).toEqual(new Set(['b', 'c']));
+  });
+  it('placerDrones tire parmi les places, de façon stable', () => {
+    const tirees = Array.from({ length: 200 }, (_, graine) => placerDrones(MONDE, graine).objets.find((objet) => objet.id === 'x')?.piece);
+    expect(new Set(tirees)).toEqual(new Set(['b', 'c']));
+    expect(placerDrones(MONDE, 17)).toEqual(placerDrones(MONDE, 17));
+    expect(placerDrones({ ...MONDE, objets: MONDE.objets.filter((objet) => objet.drone === undefined && objet.obstacle === undefined) }, 3).objets).toHaveLength(1);
+  });
+  it('avecDroneEn déplace le drone sans position', () => {
+    expect(avecDroneEn(MONDE, 'x', 'e').objets.find((objet) => objet.id === 'x')?.piece).toBe('e');
+  });
+  it('diagnostics des qualités', () => {
+    const [drone, obstacle, commande] = MONDE.objets as [DefMonde['objets'][number], DefMonde['objets'][number], DefMonde['objets'][number]];
+    expect(validerMonde(avecObjets([{ ...drone, drone: { obstacle: 'k' } }, obstacle, commande]))).toEqual(
+      expect.arrayContaining(['x : obstacle du drone inconnu ou sans qualité.', 'z : obstacle sans drone.']),
+    );
+    expect(validerMonde(avecObjets([{ ...drone, piece: 'g' }, obstacle, commande]))).toEqual(expect.arrayContaining(['x : aucun chemin de drone vers son obstacle.']));
+    expect(validerMonde(avecObjets([{ ...drone, portable: true }, obstacle, commande]))).toEqual(expect.arrayContaining(['x : dispositif de maintien portable.']));
+  });
+});
+
 const debut = (monde = MONDE): Partie => nouvellePartie(monde, { version: 'test-drone', graine: 203 });
 const commande = (action: string, cible: string, parametre?: string) => ({
   action, cible: idPublic(MONDE.id, cible), ...(parametre === undefined ? {} : { parametre: idPublic(MONDE.id, parametre) }),
@@ -38,273 +106,244 @@ function pas(partie: Partie, action: string, cible: string, parametre?: string, 
   expect(resultat.type, `${action} ${cible}`).toBe('engagee');
   return resultat.partie;
 }
-function panne(monde = MONDE): Partie {
-  return pas(pas(debut(monde), 'envoyer', 'x', undefined, monde), 'aller', 'ab', undefined, monde);
+type Geste = readonly [string, string, string?];
+function suite(partie: Partie, gestes: readonly Geste[], monde = MONDE): Partie {
+  return gestes.reduce((courante, [action, cible, parametre]) => pas(courante, action, cible, parametre, monde), partie);
 }
-function surPlace(partie: Partie): Partie {
-  return pas(pas(partie, 'aller', 'bd'), 'aller', 'cd');
+/** Palier vu, créature isolée derrière `ce`, retour au drone ; `bd` ouverte si `raccourci`. */
+function prete(raccourci: boolean, monde = MONDE): Partie {
+  const retour: Geste[] = raccourci ? [['ouvrir', 'bd'], ['aller', 'bd']] : [['aller', 'cd'], ['aller', 'bc']];
+  return suite(debut(monde), [['aller', 'ab'], ['aller', 'bc'], ['fermer', 'ce'], ['aller', 'cd'], ...retour, ['aller', 'ab']], monde);
+}
+const ou = (partie: Partie) => [partie.etat.drones?.phases.x, partie.etat.objets.x?.type === 'piece' ? partie.etat.objets.x.piece : null];
+const proposeEnvoyer = (partie: Partie) => observer(MONDE, partie.etat).menu.some((option) => option.action === 'envoyer');
+/** Événements du drone de ce geste, réduits à leur type et à leur passage. */
+function recitDrone(partie: Partie, action: string, cible: string, monde = MONDE): { partie: Partie; recit: string[] } {
+  const resultat = jouer(monde, partie, commande(action, cible));
+  if (resultat.type !== 'engagee') throw new Error(`${action} ${cible} non engagée.`);
+  const recit = resultat.evenements
+    .filter((evenement) => evenement.type.startsWith('drone_') || evenement.type === 'creature_attiree')
+    .map((evenement) => ('passage' in evenement && evenement.passage !== undefined ? `${evenement.type} ${evenement.passage.id}` : evenement.type));
+  return { partie: resultat.partie, recit };
 }
 
-describe('rail local et coopération', () => {
-  it('valide le monde et garde les états anciens sans champ additionnel', () => {
-    expect(validerMonde(MONDE)).toEqual([]);
-    expect(debut({ ...MONDE, objets: [] }).etat).not.toHaveProperty('drones');
+describe('récit du drone à chaque action (retours du porteur, PR #300)', () => {
+  const id = (liaison: string) => idPublic(MONDE.id, liaison);
+  /** Le récit du drone de chaque geste, dans l'ordre. */
+  const recits = (depart: Partie, gestes: readonly (readonly [string, string])[]): string[][] => {
+    let partie = depart;
+    return gestes.map(([action, cible]) => {
+      const suivant = recitDrone(partie, action, cible);
+      partie = suivant.partie;
+      return suivant.recit;
+    });
+  };
+  it('vu : il part, il arrive, il s’arrête devant une porte fermée', () => {
+    expect(recits(prete(false), [['envoyer', 'x'], ['attendre', 'a'], ['aller', 'ab']])).toEqual([
+      ['drone_envoye'], [`drone_part ${id('ab')}`], [`drone_bloque ${id('bd')}`],
+    ]);
   });
-  it('envoie, rejoint le poste puis maintient au prochain engagement seulement', () => {
-    const envoyee = pas(debut(), 'envoyer', 'x');
-    expect(envoyee.etat.objets.x).toEqual({ type: 'piece', piece: 'c' });
-    expect(envoyee.etat.drones?.phases.x).toBe('trajet');
-    expect(envoyee.etat.creature?.piece).toBe('c');
-    expect(panne().etat.drones?.phases.x).toBe('deraille');
+  it('entendu : derrière une porte ouverte, son moteur gronde à chaque action ; hors de portée, rien', () => {
+    expect(recits(prete(true), [['envoyer', 'x'], ['attendre', 'a'], ['attendre', 'a'], ['attendre', 'a']]).slice(1)).toEqual([
+      [`drone_part ${id('ab')}`], [`drone_gronde ${id('ab')}`], [],
+    ]);
   });
-  it('garde le drone envoyé sur la carte, dans la pièce où il est parti', () => {
-    const drones = (partie: Partie) => carte(MONDE, partie.etat).pieces.filter((piece) => piece.objets.some((objet) => objet.drone === true)).map((piece) => piece.piece.id);
-    expect(drones(debut())).toEqual([idPublic(MONDE.id, 'a')]);
-    expect(drones(pas(debut(), 'envoyer', 'x'))).toEqual([idPublic(MONDE.id, 'c')]);
+  it('la créature qu’on entend suivre le grondement : le récit fait le lien', () => {
+    const monde: DefMonde = {
+      ...MONDE,
+      pieces: [...MONDE.pieces, { id: 'r', nom: 'r' }],
+      liaisons: [...MONDE.liaisons, { id: 'dr', nom: 'porte', entre: ['d', 'r'], ouverte: true }],
+      creature: { piece: 'r' },
+    };
+    const initiale = debut(monde);
+    // Drone en route depuis b, raccourci ouvert ; le passager écoute depuis c, ouvert sur le palier seulement.
+    let partie: Partie = { ...initiale, etat: { ...initiale.etat, piece: 'c', visitees: ['a', 'b', 'c', 'd'], drones: { phases: { x: 'trajet' }, bruits: [] },
+      objets: { ...initiale.etat.objets, x: { type: 'piece', piece: 'b' } }, liaisons: { ...initiale.etat.liaisons, bd: true, bc: false, ce: false } } };
+    const recits: string[] = [];
+    for (let n = 0; n < 6 && !recits.includes('creature_attiree'); n++) {
+      const suivant = recitDrone(partie, 'attendre', 'c', monde);
+      partie = suivant.partie;
+      recits.push(...suivant.recit);
+      // Un moment de danger raconté : le récit du déplacement du drone se tait (D-111, quatre phrases au plus).
+      if (suivant.recit.includes('creature_attiree')) expect(suivant.recit.filter((type) => /^drone_(roule|part|arrive|bloque|entendu)/.test(type))).toEqual([]);
+    }
+    expect(recits).toContain('creature_attiree');
   });
-  it('ne traverse pas une porte fermée et ne revient pas gratuitement', () => {
-    const fermee = pas(debut(), 'fermer', 'ac');
-    const refus = jouer(MONDE, fermee, commande('envoyer', 'x'));
-    expect(refus).toMatchObject({ type: 'refus', raison: 'ferme' });
-    expect(refus.partie).toBe(fermee);
-    let suite = panne();
-    for (let n = 0; n < 8; n++) suite = pas(suite, 'attendre', 'b');
-    expect(suite.etat.objets.x).toEqual({ type: 'piece', piece: 'c' });
-    expect(suite.etat.drones?.phases.x).toBe('deraille');
-  });
-  it('quitter la poignée la relâche et ne permet pas de pousser seul', () => {
-    let partie = pas(debut(), 'aller', 'ac');
-    partie = pas(partie, 'tenir', 'y');
-    expect(jouer(MONDE, partie, commande('fermer', 'ce'))).toMatchObject({ type: 'refus', raison: 'lacher_poignee' });
-    partie = pas(partie, 'aller', 'cd');
-    expect(partie.etat.drones?.tenue).toBeNull();
-    expect(jouer(MONDE, partie, commande('deplacer', 'z', 'range'))).toMatchObject({ type: 'refus', raison: 'frein_serre' });
-    expect(jouer(MONDE, partie, commande('aller', 'df'))).toMatchObject({ type: 'refus', raison: 'encombre_par_obstacle' });
-  });
-  it('préparation sûre, coopération réelle, passage durable et tâche terminée', () => {
-    let partie = pas(debut(), 'aller', 'ac');
-    partie = pas(partie, 'fermer', 'ce');
-    partie = pas(partie, 'aller', 'ac');
-    partie = pas(partie, 'envoyer', 'x');
-    partie = pas(partie, 'aller', 'ab');
-    partie = pas(partie, 'aller', 'bd');
-    partie = pas(partie, 'deplacer', 'z', 'range');
-    expect(partie.etat.drones?.phases.x).toBe('termine');
-    partie = pas(partie, 'aller', 'df');
-    expect(partie.etat.sante).toBe('indemne');
-    expect(partie.enregistrement.actions.every((action) => action.tirages.length === 0)).toBe(true);
-    expect(partie.etat.objets.x).toEqual({ type: 'piece', piece: 'c' });
+  it('vu : il arrive dans la pièce du passager, puis repart', () => {
+    expect(recits(pas(prete(true), 'envoyer', 'x'), [['aller', 'ab'], ['attendre', 'b']])).toEqual([[`drone_arrive ${id('ab')}`], [`drone_roule ${id('bd')}`]]);
   });
 });
 
-describe('panne réparable, vraie menace et observations', () => {
-  it('replacer et réarmer sont deux engagements, sans soin ni consommable', () => {
-    const locale = surPlace(panne());
-    expect(jouer(MONDE, locale, commande('rearmer', 'x')).type).toBe('refus');
-    const replacee = pas(locale, 'replacer', 'x');
-    expect(replacee.etat.drones?.phases.x).toBe('a_rearmer');
-    expect(replacee.etat.actions).toBe(locale.etat.actions + 1);
-    const relancee = pas(replacee, 'rearmer', 'x');
-    expect(relancee.etat.drones?.phases.x).toBe('maintien');
-    expect(relancee.etat.actions).toBe(locale.etat.actions + 2);
-    expect(relancee.etat.sante).toBe('blesse');
-    expect(relancee.enregistrement.actions.at(-1)?.tirages).toHaveLength(1);
-    expect(relancee.etat.doses).toEqual({});
+describe('le drone roule seul et tire l’obstacle', () => {
+  it('voir le palier rend le drone prêt : un fait des règles, que la clé du solveur voit (#270)', () => {
+    expect(debut().etat.drones?.phases.x).toBe('veille');
+    expect(pas(debut(), 'aller', 'ab').etat.drones?.phases.x).toBe('veille');
+    expect(suite(debut(), [['aller', 'ab'], ['aller', 'bc'], ['aller', 'cd']]).etat.drones?.phases.x).toBe('pret');
+    expect(prete(false).etat.drones?.phases.x).toBe('pret');
   });
-
-  describe('perceptions et budget de réaction ordinaires', () => {
-    it('le passager visible et son départ vu priment sur le drone ; un jet consomme la réaction', () => {
-      let partie = pas(debut(), 'envoyer', 'x');
-      partie = pas(partie, 'aller', 'ac');
-      expect(partie.etat.creature).toMatchObject({ contact: true, repit: true });
-      partie = pas(partie, 'attendre', 'c');
-      expect(partie.etat.sante).toBe('indemne');
-      partie = pas(partie, 'aller', 'cd');
-      expect(partie.etat.drones?.phases.x).toBe('maintien');
-      expect(partie.etat.creature).toMatchObject({ piece: 'c', indice: { piece: 'd', par: 'cd' } });
-      expect(partie.enregistrement.actions.at(-1)?.tirages).toHaveLength(1);
-      partie = pas(partie, 'attendre', 'd');
-      expect(partie.etat.drones?.phases.x).toBe('deraille');
-      expect(partie.etat.creature?.piece).toBe('c');
-    });
-
-    it.each(['huile', 'froid'] as const)('%s : la réaction perdue ne renverse pas le drone', (cause) => {
-      const envoyee = pas(debut(), 'envoyer', 'x');
-      if (envoyee.etat.creature === null) throw new Error('Fixture sans créature.');
-      const ralentie: Partie = { ...envoyee, etat: { ...envoyee.etat,
-        creature: { ...envoyee.etat.creature, ...(cause === 'huile' ? { perdues: 1 } : { ralentie: { saute: true } }) },
-      } };
-      const sautee = pas(ralentie, 'aller', 'ab');
-      expect(sautee.etat.drones?.phases.x).toBe('maintien');
-      expect(pas(sautee, 'attendre', 'b').etat.drones?.phases.x).toBe('deraille');
-    });
-
-    it('les machines couvrent le drone, sans privilège acoustique', () => {
-      const monde = { ...MONDE, pieces: MONDE.pieces.map((piece) => piece.id === 'c' ? { ...piece, machines: true } : piece) };
-      let partie = pas(debut(monde), 'envoyer', 'x', undefined, monde);
-      partie = pas(partie, 'aller', 'ab', undefined, monde);
-      expect(partie.etat.creature?.piece).toBe('e');
-      expect(partie.etat.drones?.phases.x).toBe('maintien');
-    });
-
-    it('à intensité égale, une alarme plus récente détourne l’inspection ; aucun âge non borné', () => {
-      const monde: DefMonde = { ...MONDE, objets: [...MONDE.objets, { id: 't', nom: 't', piece: 'a', portable: false, avertisseur: { piece: 'e' } }] };
-      let partie = pas(debut(monde), 'envoyer', 'x', undefined, monde);
-      partie = pas(partie, 'declencher', 't', undefined, monde);
-      expect(partie.etat.drones?.phases.x).toBe('maintien');
-      expect(partie.etat.creature?.piece).toBe('e');
-      expect(partie.etat.drones?.bruits).toEqual(['x', 't']);
-      for (let i = 0; i < 6; i++) partie = pas(partie, 'attendre', 'a', undefined, monde);
-      expect(partie.etat.drones?.phases.x).toBe('deraille');
-      expect(partie.etat.drones?.bruits).toEqual([]);
-    });
-
-    it('la panne entendue est située par un passage, sans marqueur de créature sur la carte', () => {
-      const envoyee = pas(debut(), 'envoyer', 'x');
-      const resultat = jouer(MONDE, envoyee, commande('attendre', 'a'));
-      expect(resultat.type).toBe('engagee');
-      if (resultat.type !== 'engagee') throw new Error('Action non engagée.');
-      expect(resultat.evenements).toContainEqual(expect.objectContaining({ type: 'drone_bruit_arrete' }));
-      expect(observer(MONDE, resultat.partie.etat).carte.pieces.every((piece) => piece.creature === null)).toBe(true);
-      expect(observer(MONDE, resultat.partie.etat).drones).toEqual([]);
-    });
-
-    it('arrêter puis reprendre exige deux gestes locaux ; aucun transport ni suivi', () => {
-      let partie = pas(debut(), 'aller', 'ac');
-      partie = pas(partie, 'fermer', 'ce');
-      partie = pas(partie, 'aller', 'ac');
-      partie = pas(partie, 'envoyer', 'x');
-      partie = pas(partie, 'aller', 'ac');
-      partie = pas(partie, 'arreter_drone', 'x');
-      expect(partie.etat.drones?.phases.x).toBe('arrete');
-      expect(jouer(MONDE, partie, commande('prendre', 'x')).partie).toBe(partie);
-      partie = pas(partie, 'reprendre_drone', 'x');
-      partie = pas(partie, 'aller', 'cd');
-      expect(partie.etat.objets.x).toEqual({ type: 'piece', piece: 'c' });
-      expect(jouer(MONDE, partie, commande('arreter_drone', 'x')).partie).toBe(partie);
-    });
+  it('envoyer absent tant que le palier n’a pas été vu', () => {
+    expect(proposeEnvoyer(debut())).toBe(false);
+    expect(jouer(MONDE, debut(), commande('envoyer', 'x')).type).toBe('refus');
+    expect(proposeEnvoyer(prete(false))).toBe(true);
   });
-
-  describe('obstacle matériel, dangers et sortie réparable', () => {
-    it('le chariot empêche aussi la créature de passer, sans supprimer le chemin sonore', () => {
-      const monde = { ...MONDE, creature: { piece: 'f' } };
-      let partie = pas(debut(monde), 'envoyer', 'x', undefined, monde);
-      for (let i = 0; i < 4; i++) partie = pas(partie, 'attendre', 'a', undefined, monde);
-      expect(partie.etat.creature).toMatchObject({ piece: 'f', indice: { piece: 'c' } });
-      expect(partie.etat.drones?.phases.x).toBe('maintien');
-    });
-
-    it('le feu passe le passage encombré ; le drone ne tombe pas en panne, le passager brûle', () => {
-      const monde = { ...MONDE, pieces: MONDE.pieces.map((piece) => piece.id === 'f' ? { ...piece, feu: true } : piece) };
-      let partie = pas(debut(monde), 'envoyer', 'x', undefined, monde);
-      partie = pas(partie, 'aller', 'ac', undefined, monde);
-      expect(partie.etat.feu).toContain('d');
-      partie = pas(partie, 'attendre', 'c', undefined, monde);
-      partie = pas(partie, 'attendre', 'c', undefined, monde);
-      expect(partie.etat.drones?.phases.x).toBe('maintien');
-      expect(partie.etat.sante).not.toBe('indemne');
-    });
-
-    it('le vide traverse le passage encombré ; seul le passager a besoin de protection', () => {
-      const monde: DefMonde = { ...MONDE, objets: [...MONDE.objets,
-        { id: 'v', nom: 'v', piece: 'f', portable: false, vitrageExterieur: true },
-        { id: 's', nom: 's', piece: 'a', protection: true },
-      ] };
-      const initiale = debut(monde);
-      const partie: Partie = { ...initiale, etat: { ...initiale.etat, breches: ['v'], objets: { ...initiale.etat.objets, s: { type: 'passager', enfile: true } } } };
-      expect(piecesSansAir(monde, partie.etat)).toContain('d');
-      const envoyee = pas(partie, 'envoyer', 'x', undefined, monde);
-      const tenue = pas(envoyee, 'attendre', 'a', undefined, monde);
-      expect(tenue.etat.drones?.phases.x).toBe('maintien');
-      expect(tenue.etat.creature?.neutralisee).toBeDefined();
-      expect(tenue.etat.sante).toBe('indemne');
-      const sansProtection: Partie = { ...partie, etat: { ...partie.etat, objets: { ...partie.etat.objets, s: { type: 'piece', piece: 'a' } } } };
-      expect(pas(sansProtection, 'envoyer', 'x', undefined, monde).etat.sante).toBe('vaincu');
-    });
-
-    it('le froid blesse le passager, sans modifier le drone', () => {
-      const monde = { ...MONDE, pieces: MONDE.pieces.map((piece) => piece.id === 'c' ? { ...piece, froide: true } : piece) };
-      let partie = pas(debut(monde), 'aller', 'ac', undefined, monde);
-      partie = pas(partie, 'fermer', 'ce', undefined, monde);
-      partie = pas(partie, 'aller', 'ac', undefined, monde);
-      partie = pas(partie, 'envoyer', 'x', undefined, monde);
-      partie = pas(partie, 'aller', 'ac', undefined, monde);
-      partie = pas(partie, 'attendre', 'c', undefined, monde);
-      partie = pas(partie, 'attendre', 'c', undefined, monde);
-      expect(partie.etat.sante).toBe('blesse');
-      expect(partie.etat.drones?.phases.x).toBe('maintien');
-    });
-
-    it('sortiePossible distingue une panne réparable d’un poste définitivement inaccessible', () => {
-      const monde: DefMonde = { ...MONDE,
-        pieces: [...MONDE.pieces, { id: 'g', nom: 'g', sousPosition: true }],
-        liaisons: [...MONDE.liaisons, { id: 'fg', nom: 'porte', entre: ['f', 'g'], ouverte: false }],
-        objets: [...MONDE.objets,
-          { id: 'capsule', nom: 'capsule', piece: 'f', portable: false, capsule: { interieur: 'g', alimentee: true } },
-          { id: 'pupitre', nom: 'pupitre', piece: 'g', portable: false, depart: 'capsule' },
-        ],
-      };
-      expect(sortiePossible(monde, panne(monde).etat)).toBe(true);
-      const initiale = debut(monde);
-      const bloque = { ...monde, liaisons: monde.liaisons.map((liaison) => ['ac', 'cd'].includes(liaison.id) ? { ...liaison, manoeuvre: 'c' } : liaison) };
-      const etat = { ...initiale.etat, liaisons: { ...initiale.etat.liaisons, ac: false, cd: false } };
-      expect(sortiePossible(bloque, etat)).toBe(false);
-    });
-  });
-
-  describe('diagnostics des qualités et références', () => {
-    it.each([
-      ['rail inconnu', { drone: { rail: 'absent', poignee: 'y' } }, 'rail hors du trajet local'],
-      ['poignée inconnue', { drone: { rail: 'ac', poignee: 'absente' } }, 'poignée du drone inconnue'],
-      ['drone portable', { portable: true }, 'dispositif de maintien portable'],
-      ['drone déplaçable', { deplacable: true }, 'dispositif fixe déplaçable'],
-      ['qualités incompatibles', { soin: 1 }, 'qualité étrangère'],
-    ] as const)('%s est refusé explicitement', (_nom, changement, diagnostic) => {
-      const monde = { ...MONDE, objets: MONDE.objets.map((objet) => objet.id === 'x' ? { ...objet, ...changement } : objet) };
-      expect(validerMonde(monde).join('\n')).toContain(diagnostic);
-      expect(() => debut(monde)).toThrow();
-    });
-
-    it.each([
-      { passage: 'absent', rangement: 'range', maintien: 'y' },
-      { passage: 'df', rangement: 'absent', maintien: 'y' },
-      { passage: 'df', rangement: 'range', maintien: 'x' },
-    ])('référence d’obstacle invalide : %j', (obstacle) => {
-      expect(validerMonde({ ...MONDE, objets: MONDE.objets.map((objet) => objet.id === 'z' ? { ...objet, obstacle } : objet) }).length).toBeGreaterThan(0);
-    });
-  });
-  it('refus, regards et aperçus sont gratuits, réparer à distance est impossible', () => {
-    const partie = panne();
-    expect(jouer(MONDE, partie, commande('replacer', 'x'))).toMatchObject({ type: 'refus', partie });
-    expect(jouer(MONDE, partie, commande('regarder', 'b'))).toMatchObject({ type: 'consultation', partie });
-    const locale = surPlace(partie);
-    const avant = structuredClone(locale);
-    for (let n = 0; n < 10; n++) {
-      observer(MONDE, locale.etat);
-      expect(apercu(MONDE, locale, commande('replacer', 'x')).type).toBe('apercu');
+  it('deux actions par pièce, puis traction et passage libre', () => {
+    let partie = pas(prete(true), 'envoyer', 'x');
+    expect(ou(partie)).toEqual(['roule', 'a']);
+    const etapes: unknown[] = [];
+    for (let n = 0; n < 4; n++) {
+      partie = pas(partie, 'attendre', 'a');
+      etapes.push(ou(partie));
     }
-    expect(locale).toEqual(avant);
+    expect(etapes).toEqual([['trajet', 'b'], ['roule', 'b'], ['traction', 'd'], ['termine', 'd']]);
+    expect(partie.etat.objets.z).toEqual({ type: 'piece', piece: 'd', position: 'range' });
+    expect(partie.enregistrement.actions.every((action) => action.tirages.length === 0)).toBe(true);
   });
-  it('ne révèle pas une panne hors de vue ni un drone jamais vu au poste sur la carte', () => {
-    const vue = observer(MONDE, panne().etat);
-    expect(vue.drones).toEqual([]);
-    expect(vue.carte.pieces.find((piece) => piece.piece.nom === 'c')?.objets ?? []).toEqual([]);
-    expect(observer(MONDE, debut().etat).carte.pieces[0]?.objets[0]).toMatchObject({ drone: true });
+  it('porte suivante ouverte : du bruit à chaque action, et on le voit en route, pas en attente (revue finale)', () => {
+    let partie = pas(prete(true), 'envoyer', 'x');
+    const bruits: number[] = [sonsDrones(MONDE, partie.etat).length];
+    for (let n = 0; n < 3; n++) {
+      partie = pas(partie, 'attendre', 'a');
+      bruits.push(sonsDrones(MONDE, partie.etat).length);
+    }
+    expect(bruits).toEqual([1, 1, 1, 1]);
+    const ensemble = suite(prete(true), [['envoyer', 'x'], ['aller', 'ab']]);
+    expect(ou(ensemble)).toEqual(['trajet', 'b']);
+    expect(observer(MONDE, ensemble.etat).drones?.map(({ phase }) => phase)).toEqual(['roule']);
   });
-  it('rejoue réellement un export avec réparation et dés enregistrés', () => {
-    const partie = pas(pas(surPlace(panne()), 'replacer', 'x'), 'rearmer', 'x');
-    const exportee = exporter(MONDE, partie);
-    expect(rejouer(MONDE, exportee, 'test-drone').partie).toEqual(partie);
+  it('attend devant une porte fermée, sans bruit, et repart quand on l’ouvre', () => {
+    let partie = suite(prete(false), [['envoyer', 'x'], ['attendre', 'a'], ['attendre', 'a']]);
+    expect(ou(partie)).toEqual(['trajet', 'b']);
+    expect(sonsDrones(MONDE, partie.etat)).toEqual([]);
+    partie = suite(partie, [['aller', 'ab'], ['ouvrir', 'bd']]);
+    expect(ou(partie)).toEqual(['roule', 'b']);
+    expect(sonsDrones(MONDE, partie.etat)).toHaveLength(1);
   });
-  it('réparer sous menace peut tuer ; mort prioritaire, aucune invulnérabilité', () => {
-    let partie = surPlace(panne());
-    partie = pas(partie, 'attendre', 'c');
-    partie = pas(partie, 'attendre', 'c');
+  it('porte refermée pendant le roulement : il reste et attend', () => {
+    const partie = suite(prete(false), [['envoyer', 'x'], ['attendre', 'a'], ['aller', 'ab'], ['ouvrir', 'bd'], ['fermer', 'bd']]);
+    expect(ou(partie)).toEqual(['trajet', 'b']);
+  });
+  it('renversé pendant la traction, l’obstacle ne bouge pas ; redressé et relancé, il le range', () => {
+    let partie = suite(prete(true), [['envoyer', 'x'], ['attendre', 'a'], ['attendre', 'a'], ['attendre', 'a']]);
+    expect(ou(partie)).toEqual(['traction', 'd']);
+    partie = { ...partie, etat: renverserDrone(MONDE, partie.etat, 'x').etat };
+    partie = suite(partie, [['aller', 'ab'], ['aller', 'bd']]);
+    expect(ou(partie)).toEqual(['deraille', 'd']);
+    expect(partie.etat.objets.z).toEqual({ type: 'piece', piece: 'd', position: 'barre' });
     partie = pas(partie, 'replacer', 'x');
-    const prevision = apercu(MONDE, partie, commande('rearmer', 'x'));
-    expect(prevision).toMatchObject({ type: 'apercu', apercu: { danger: { type: 'interception_mortelle' } } });
+    expect(ou(partie)).toEqual(['a_rearmer', 'd']);
     partie = pas(partie, 'rearmer', 'x');
-    expect(partie.etat.sante).toBe('vaincu');
-    expect(observer(MONDE, partie.etat).menu).toEqual([]);
+    expect(ou(partie)).toEqual(['traction', 'd']);
+    partie = pas(partie, 'attendre', 'd');
+    expect(ou(partie)).toEqual(['termine', 'd']);
+    expect(partie.etat.objets.z).toEqual({ type: 'piece', piece: 'd', position: 'range' });
+  });
+  it('arrêter puis relancer garde sa place et son trajet', () => {
+    let partie = suite(prete(true), [['envoyer', 'x'], ['arreter_drone', 'x']]);
+    expect(ou(partie)).toEqual(['arrete', 'a']);
+    expect(sonsDrones(MONDE, partie.etat)).toEqual([]);
+    partie = pas(partie, 'attendre', 'a');
+    expect(ou(partie)).toEqual(['arrete', 'a']);
+    partie = pas(partie, 'reprendre_drone', 'x');
+    expect(ou(partie)).toEqual(['roule', 'a']);
+  });
+  it('en entrant, le récit dit que l’obstacle barre le passage, puis qu’il est dégagé (#271)', () => {
+    const arrivee = (partie: Partie, liaison: string) => {
+      const resultat = jouer(MONDE, partie, commande('aller', liaison));
+      if (resultat.type !== 'engagee') throw new Error('Action non engagée.');
+      return { partie: resultat.partie, evenements: resultat.evenements.filter((evenement) => evenement.type === 'obstacle_en_travers' || evenement.type === 'obstacle_degage') };
+    };
+    const barre = arrivee(suite(debut(), [['aller', 'ab'], ['aller', 'bc']]), 'cd');
+    expect(barre.evenements).toEqual([{ type: 'obstacle_en_travers', objet: expect.objectContaining({ id: idPublic(MONDE.id, 'z') }), passage: expect.objectContaining({ id: idPublic(MONDE.id, 'df') }) }]);
+    expect(arrivee(debut(), 'ab').evenements).toEqual([]);
+    const rangee = suite(prete(true), [['envoyer', 'x'], ['attendre', 'a'], ['attendre', 'a'], ['attendre', 'a'], ['attendre', 'a'], ['aller', 'ab']]);
+    expect(ou(rangee)).toEqual(['termine', 'd']);
+    expect(arrivee(rangee, 'bd').evenements.map((evenement) => evenement.type)).toEqual(['obstacle_degage']);
+  });
+  it('l’obstacle est trop lourd pour la main', () => {
+    const partie = suite(debut(), [['aller', 'ab'], ['aller', 'bc'], ['aller', 'cd']]);
+    const refus = jouer(MONDE, partie, commande('deplacer', 'z', 'range'));
+    expect(refus).toMatchObject({ type: 'refus', raison: 'trop_lourd' });
+    expect(refus.partie).toBe(partie);
+    expect(jouer(MONDE, partie, commande('aller', 'df'))).toMatchObject({ type: 'refus', raison: 'encombre_par_obstacle' });
+  });
+  it('rejoue exactement au milieu d’un trajet', () => {
+    const partie = suite(prete(true), [['envoyer', 'x'], ['attendre', 'a']]);
+    expect(rejouer(MONDE, exporter(MONDE, partie), 'test-drone').partie).toEqual(partie);
+  });
+  it('le palier dit que l’obstacle barre le passage, puis qu’il est dégagé', () => {
+    let partie = suite(prete(true), [['envoyer', 'x'], ['aller', 'ab'], ['aller', 'bd']]);
+    const obstacles = () => observer(MONDE, partie.etat).obstacles?.map(({ objet, passage, range }) => [objet.id, passage.id, range]);
+    expect(obstacles()).toEqual([[idPublic(MONDE.id, 'z'), idPublic(MONDE.id, 'df'), false]]);
+    partie = suite(partie, [['attendre', 'd'], ['attendre', 'd']]);
+    expect(ou(partie)).toEqual(['termine', 'd']);
+    expect(obstacles()).toEqual([[idPublic(MONDE.id, 'z'), idPublic(MONDE.id, 'df'), true]]);
+    expect(observer(MONDE, debut().etat).obstacles).toEqual([]);
+  });
+  it('la carte suit le drone envoyé hors de vue, sans double ni souvenir périmé', () => {
+    const surCarte = (partie: Partie) => carte(MONDE, partie.etat).pieces.filter((piece) => piece.objets.some((objet) => objet.drone === true)).map((piece) => piece.piece.id);
+    expect(surCarte(debut())).toEqual([idPublic(MONDE.id, 'a')]);
+    let partie = suite(prete(true), [['envoyer', 'x'], ['aller', 'ab'], ['aller', 'bc']]);
+    expect(ou(partie)).toEqual(['roule', 'b']);
+    partie = pas(partie, 'attendre', 'c');
+    expect(ou(partie)).toEqual(['traction', 'd']);
+    expect(surCarte(partie)).toEqual([idPublic(MONDE.id, 'd')]);
+    const renverse: Partie = { ...partie, etat: renverserDrone(MONDE, partie.etat, 'x').etat };
+    expect(surCarte(renverse)).toEqual([idPublic(MONDE.id, 'd')]);
+    partie = pas(partie, 'attendre', 'c');
+    expect(ou(partie)).toEqual(['termine', 'd']);
+    expect(surCarte(partie)).toEqual([idPublic(MONDE.id, 'd')]);
+  });
+  it('plus aucune sortie : un drone renversé derrière une porte qu’on peut ouvrir laisse la sortie, pas un chemin condamné', () => {
+    const avecCapsule = (base: DefMonde): DefMonde => ({ ...base,
+      pieces: [...base.pieces, { id: 'i', nom: 'i', sousPosition: true }],
+      liaisons: [...base.liaisons, { id: 'fi', nom: 'porte', entre: ['f', 'i'], ouverte: false }],
+      objets: [...base.objets,
+        { id: 'capsule', nom: 'capsule', piece: 'f', portable: false, capsule: { interieur: 'i', alimentee: true } },
+        { id: 'pupitre', nom: 'pupitre', piece: 'i', portable: false, depart: 'capsule' },
+      ],
+    });
+    const renverse = (monde: DefMonde) => {
+      const initiale = debut(monde);
+      return { ...initiale.etat, objets: { ...initiale.etat.objets, x: { type: 'piece' as const, piece: 'b' } }, drones: { phases: { x: 'deraille' as const }, bruits: [] } };
+    };
+    const monde = avecCapsule(MONDE);
+    expect(sortiePossible(monde, renverse(monde))).toBe(true);
+    // Sans c ─ d, le seul chemin du drone est b ┄ d, qui ne se manœuvre que depuis d : on n'y arrive plus.
+    const condamne = avecCapsule({ ...MONDE, liaisons: MONDE.liaisons.filter((liaison) => liaison.id !== 'cd').map((liaison) => (liaison.id === 'bd' ? { ...liaison, manoeuvre: 'd' } : liaison)) });
+    expect(sortiePossible(condamne, renverse(condamne))).toBe(false);
+  });
+  it('le feu n’arrête pas le drone (D-306)', () => {
+    const monde: DefMonde = { ...MONDE, pieces: MONDE.pieces.map((piece) => (piece.id === 'b' ? { ...piece, feu: true } : piece)) };
+    // Drone déjà en route depuis a ; le passager attend loin du feu, enfermé en e avec la créature partie ailleurs.
+    const initiale = debut({ ...monde, creature: { piece: 'f' } });
+    const drones = { phases: { x: 'trajet' as const }, bruits: [] };
+    let partie: Partie = { ...initiale, etat: { ...initiale.etat, piece: 'e', visitees: ['a', 'd', 'e'], drones, liaisons: { ...initiale.etat.liaisons, bd: true, ce: false } } };
+    for (let n = 0; n < 5; n++) partie = pas(partie, 'attendre', 'e', undefined, { ...monde, creature: { piece: 'f' } });
+    expect(ou(partie)).toEqual(['termine', 'd']);
+  });
+  it('aperçus et refus ne coûtent rien', () => {
+    const partie = prete(true);
+    const avant = structuredClone(partie);
+    for (let n = 0; n < 5; n++) {
+      expect(apercu(MONDE, partie, commande('envoyer', 'x')).type).toBe('apercu');
+      expect(jouer(MONDE, partie, commande('replacer', 'x')).partie).toBe(partie);
+    }
+    expect(partie).toEqual(avant);
+  });
+  it('la créature qui l’entend rouler le renverse en route ; le passager à l’abri reste indemne', () => {
+    // Créature dans une réserve ouverte sur l'obstacle, comme dans M-12 ; le passager lance le drone et se referme en a.
+    const monde: DefMonde = {
+      ...MONDE,
+      pieces: [...MONDE.pieces, { id: 'r', nom: 'r' }],
+      liaisons: [...MONDE.liaisons, { id: 'dr', nom: 'porte', entre: ['d', 'r'], ouverte: true }],
+      creature: { piece: 'r' },
+    };
+    const initiale = debut(monde);
+    let partie: Partie = { ...initiale, etat: { ...initiale.etat, visitees: ['a', 'd'], drones: { phases: { x: 'pret' }, bruits: [] }, liaisons: { ...initiale.etat.liaisons, bd: true } } };
+    partie = suite(partie, [['envoyer', 'x'], ['attendre', 'a'], ['fermer', 'ab']], monde);
+    for (let n = 0; n < 6 && partie.etat.drones?.phases.x !== 'deraille'; n++) partie = pas(partie, 'attendre', 'a', undefined, monde);
+    expect(partie.etat.drones?.phases.x).toBe('deraille');
+    expect(partie.etat.objets.z).toEqual({ type: 'piece', piece: 'd', position: 'barre' });
+    expect(partie.etat.sante).toBe('indemne');
   });
 });

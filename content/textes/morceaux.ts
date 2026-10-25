@@ -1,6 +1,6 @@
 import { MENACE } from './menace';
 import type { TextesMonde } from './types';
-import { EVENEMENTS_DRONE, LIBELLES_DRONE, OBSERVATION_DRONE, REFUS_DRONE, SAVOIR_DRONE, VERBES_DRONE } from './drone';
+import { EVENEMENTS_DRONE, INDISPONIBILITES_DRONE, LIBELLES_DRONE, OBSERVATION_DRONE, REFUS_DRONE, SAVOIR_DRONE, VERBES_DRONE } from './drone';
 
 // Textes des règles des nouveaux morceaux (#105) écrits à la main (C-07) : passerelle, salle des machines, zone sans gravité,
 // chambre froide, objet encombrant. Partagés par les mondes : ceux qui n'ont pas ces morceaux ne s'en servent que pour la
@@ -101,7 +101,7 @@ export const REFUS_MORCEAUX = {
 } as const satisfies Partial<TextesMonde['refus']>;
 
 export const INDISPONIBILITES_MORCEAUX = {
-  ...REFUS_DRONE,
+  ...INDISPONIBILITES_DRONE,
   encombre: 'Vous avez déjà les bras pris par un objet encombrant.',
   sans_pont: 'Il faut de quoi franchir {le:cible}.',
   trop_loin: 'Sans gravité, il faut d’abord dériver jusqu’à {le:cible}.',

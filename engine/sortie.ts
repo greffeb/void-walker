@@ -1,6 +1,6 @@
 import { manoeuvrable, pontSur, verrouillee, type EtatPartie } from './etat';
 import { indexer, type DefLiaison, type DefMonde, type DefObjet } from './monde';
-import { obstacleSur, range } from './drone';
+import { cheminDrone, obstacleSur, range } from './drone';
 
 // « Plus aucune sortie » (D-085, D-275) : un calcul de chemin sur l'état réel. Les dangers (créature, feu, froid, vide) ne
 // ferment aucun passage : on peut y laisser la vie, pas le chemin. Seul compte ce que l'on ne peut plus franchir ou
@@ -86,14 +86,20 @@ export function sortiePossible(monde: DefMonde, etat: EtatPartie): boolean {
   for (let change = true; change; ) {
     change = false;
     for (const objet of monde.objets) {
-      // Panne réparable sans consommable : le poste et l'obstacle doivent être accessibles, ainsi que le drone et son rail.
+      // Panne réparable sans consommable (#270) : le drone doit être atteint, et chaque porte de son chemin franchissable par le
+      // passager, qui la lui ouvre depuis le côté d'où le drone arrive.
       if (objet.obstacle !== undefined && !range(etat, objet) && !deplaces.has(objet.id)) {
-        const poignee = index.objets.get(objet.obstacle.maintien);
-        const drone = monde.objets.find((candidat) => candidat.drone?.poignee === poignee?.id);
-        const rail = drone?.drone === undefined ? undefined : index.liaisons.get(drone.drone.rail);
+        const drone = monde.objets.find((candidat) => candidat.drone?.obstacle === objet.id);
         const ici = drone === undefined ? undefined : pieceDe(etat, drone);
-        if (atteintes.has(objet.piece) && poignee !== undefined && atteintes.has(poignee.piece) && ici !== undefined && atteintes.has(ici)
-          && rail !== undefined && (ici === poignee.piece || franchissable(rail, ici))) {
+        const chemin = drone === undefined || ici === undefined ? null : cheminDrone(monde, drone.id, ici);
+        let piece = ici;
+        const praticable = ici !== undefined && atteintes.has(ici) && chemin !== null && chemin.every((id) => {
+          const liaison = index.liaisons.get(id);
+          if (liaison === undefined || piece === undefined || !franchissable(liaison, piece)) return false;
+          piece = liaison.entre[0] === piece ? liaison.entre[1] : liaison.entre[0];
+          return true;
+        });
+        if (praticable) {
           deplaces.add(objet.id);
           change = true;
         }

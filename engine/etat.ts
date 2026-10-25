@@ -190,7 +190,6 @@ export interface EtatPartie {
   /** Présent uniquement avec des drones ; phases et ordre des sources sonores actifs, sans horloge non bornée. */
   readonly drones?: {
     readonly phases: Readonly<Record<string, PhaseDrone>>;
-    readonly tenue: string | null;
     readonly bruits: readonly string[];
   };
 }

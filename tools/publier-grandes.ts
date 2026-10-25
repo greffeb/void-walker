@@ -10,7 +10,8 @@ import { empreinteComposition, FICHIER_SANS_STATION, FICHIER_TEMOINS, lireSansSt
 import { actualiserVersionGrande } from './temoins-portables';
 
 // Publication (D-326) : certificats rejoués ou parcours construits puis vérifiés, sans exploration globale du jeu.
-// `--par=<n>` stations par composition (2), `--essais=<n>` graines assemblables (8), `--tout` sans certificats ni refus gardés.
+// `--par=<n>` stations par composition (2), `--essais=<n>` graines assemblables (8), `--tout` sans certificats ni refus gardés,
+// `--accepter=<composition>,…` pertes de variantes voulues.
 // Un processus par défaut ; `--processus=<n>` pour partager le travail explicitement.
 
 export const FICHIER_LISTE = 'content/stations/grandes-publiees.ts';
@@ -25,8 +26,11 @@ ${publiees.map((id) => `  '${id}',`).join('\n')}
 `;
 }
 
-/** Une nouvelle méthode de preuve ne doit pas réduire silencieusement les variantes déjà proposées au joueur. */
-export function verifierDiversite(avant: readonly string[], apres: readonly string[], par: number): void {
+/**
+ * Une nouvelle méthode de preuve ne doit pas réduire silencieusement les variantes déjà proposées au joueur. `acceptees` : compositions
+ * dont la perte est voulue, nommées une à une (`--accepter=`), jamais en bloc.
+ */
+export function verifierDiversite(avant: readonly string[], apres: readonly string[], par: number, acceptees: ReadonlySet<string> = new Set()): void {
   const variantes = (stations: readonly string[]): Map<string, number> => {
     const comptes = new Map<string, number>();
     for (const station of new Set(stations)) {
@@ -36,7 +40,7 @@ export function verifierDiversite(avant: readonly string[], apres: readonly stri
     return comptes;
   };
   const obtenues = variantes(apres);
-  const pertes = [...variantes(avant)].filter(([composition, nombre]) => (obtenues.get(composition) ?? 0) < Math.min(par, nombre));
+  const pertes = [...variantes(avant)].filter(([composition, nombre]) => !acceptees.has(composition) && (obtenues.get(composition) ?? 0) < Math.min(par, nombre));
   if (pertes.length > 0) throw new Error(`Republication interrompue : moins de variantes pour ${pertes.map(([composition]) => composition).join(', ')}. Fichiers publiés inchangés ; examiner les parcours non construits.`);
 }
 
@@ -81,7 +85,8 @@ async function principal(): Promise<void> {
     return;
   }
   const publiees = Object.keys(temoins).sort();
-  verifierDiversite(CATALOGUE.publiees, publiees, par);
+  const acceptees = new Set(argumentsCli.find((argument) => argument.startsWith('--accepter='))?.slice('--accepter='.length).split(',').map(actualiserVersionGrande) ?? []);
+  verifierDiversite(CATALOGUE.publiees, publiees, par, acceptees);
   writeFileSync(join(REPO_ROOT, FICHIER_LISTE), ecrireListe(publiees));
   // La fermeture des imports contient la liste publiée : marquer les refus avec l'empreinte après son écriture.
   const moteur = empreinteCode(['engine/index.ts', 'tools/construire-temoin.ts', 'tools/verifier-grandes.ts']);

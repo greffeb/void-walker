@@ -1,7 +1,7 @@
 import { CATALOGUE, type ActionEngagee, type DefAction, type Effet } from './actions';
 import { bruitDeStation } from './bruits';
 import { peutSuivre, reagir, type SonEmis } from './creature';
-import { avancerDrones, lacherPoignee, sonsDrones } from './drone';
+import { avancerDrones, sonsDrones } from './drone';
 import { graineValide, ouvrirDes, type Des } from './des';
 import { assourdie, autreCote, creatureActive, creatureEnVue, etatInitial, liaisonsDe, liaisonsVisibles, piecesSansAir, refPassage, refPiece, type Alarme, type EtatPartie } from './etat';
 import { actualiserFeu, brule, voitLaPiece, type Embrasement } from './feu';
@@ -39,6 +39,8 @@ export const FORMAT_ENREGISTREMENT = 1;
 /** Les événements par lesquels le passager perçoit déjà la créature à ce pas (spec créature mobile §3.3). */
 const SIGNES_CREATURE: ReadonlySet<Evenement['type']> = new Set(['bruit_creature', 'creature_entre', 'creature_glisse', 'porte_secouee', 'porte_enfoncee', 'pas_entendus', 'souffle_entendu', 'poursuite_proche']);
 /** Signes qui la situent déjà par un passage : le bruit de poursuite n'y ajoute rien (#258). */
+const RECIT_DRONE: ReadonlySet<Evenement['type']> = new Set(['drone_roule', 'drone_part', 'drone_arrive', 'drone_bloque', 'drone_gronde']);
+const DANGERS_RECIT: ReadonlySet<Evenement['type']> = new Set(['menace', 'premier_contact', 'aggravation_blesse', 'aggravation_critique', 'defaite', 'drone_bruit_arrete', 'creature_attiree']);
 const SITUEE_PAR_PASSAGE: ReadonlySet<Evenement['type']> = new Set(['bruit_creature', 'creature_entre', 'creature_glisse', 'porte_secouee', 'porte_enfoncee']);
 
 export interface EntreeJournal {
@@ -266,12 +268,7 @@ export function apercu(monde: DefMonde, partie: Partie, commande: unknown): Resu
   for (const autre of dangers) {
     if (autre !== null && NIVEAUX_RISQUE.indexOf(autre.risque) >= NIVEAUX_RISQUE.indexOf(retenu.risque)) retenu = autre;
   }
-  const tenue = partie.etat.drones?.tenue;
   const savoir: Savoir[] = [...prevision.savoir, ...airConnu(monde, simulation)];
-  if (tenue != null && simulation.froid.etat.drones?.tenue === null && definition.id !== 'lacher') {
-    const lachee = lacherPoignee(monde, partie.etat).evenements[0];
-    if (lachee?.type === 'poignee_lachee') savoir.push({ type: 'lachera', objet: lachee.objet });
-  }
   return { type: 'apercu', apercu: { commande: validation.commande, ...prevision, ...retenu, savoir } };
 }
 
@@ -337,9 +334,7 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown, des?: 
     ...(froid.gelure ? (['froid'] as const) : []),
   ];
   // Sans combinaison dans une pièce sans air : vaincu, hors plafond (C-04 §3.1).
-  const lachee = atteint ? lacherPoignee(monde, reponse.etat) : { etat: reponse.etat, evenements: [] };
-  reponse.evenements.push(...lachee.evenements);
-  const blessure = vide.asphyxie ? asphyxier(decompter(lachee.etat), causes) : aggraver(decompter(lachee.etat), causes);
+  const blessure = vide.asphyxie ? asphyxier(decompter(reponse.etat), causes) : aggraver(decompter(reponse.etat), causes);
   const menace: readonly Evenement[] = exposition && !atteint ? [{ type: 'menace' }] : [];
   const coups = blessure.evenements;
   // En fuite, elle frappe au seuil, avant le déplacement ; la brûlure se raconte avec le feu ; une défaite se raconte en dernier
@@ -348,7 +343,7 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown, des?: 
   const auSeuil = effet.franchie !== undefined && !vaincu;
   const coupsAuSeuil = auSeuil && atteint && !brulure;
   const coupsAvecLeFeu = !vaincu && brulure;
-  const evenements = [
+  const brut = [
     ...(auSeuil ? menace : []),
     ...(coupsAuSeuil ? coups : []),
     ...effet.evenements,
@@ -359,6 +354,10 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown, des?: 
     ...(auSeuil ? [] : menace),
     ...(coupsAuSeuil || coupsAvecLeFeu ? [] : coups),
   ];
+  // Un moment de danger raconté (créature, menace, blessure, panne du drone) : le déplacement du drone se tait, le récit garde
+  // quatre phrases au plus (D-111, D-370).
+  const danger = brut.some((evenement) => SIGNES_CREATURE.has(evenement.type) || DANGERS_RECIT.has(evenement.type));
+  const evenements = danger ? brut.filter((evenement) => !RECIT_DRONE.has(evenement.type)) : brut;
   // Étape 5 : messages d'arrivée, puis conclusion ; une défaite l'emporte sur le départ de la capsule.
   let conclu: EtatPartie = blessure.etat;
   if (!vaincu) {

@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { idPublic, jouer, nouvellePartie, observer, type DefMonde, type Partie } from '../engine';
+import { avecDroneEn, cheminDrone } from '../engine/drone';
 import { CATALOGUE } from './catalogue';
 
 // M-11 et M-12 dans les grandes stations (#236) : leurs règles tiennent avec les annexes et les portes de boucle. La porte
 // blindée ne se force jamais, même par une créature venue d'une porte de boucle (D-292), et la remise reste fermée (D-293) ;
-// le drone tient la poignée, se replace puis se réarme sur place, et le chariot se range (D-304, D-305).
+// le drone, tiré n'importe où avant le chariot, roule jusqu'à lui, se redresse puis se relance sur place, et le range (#270, D-305).
 
 /** Mondes assemblés des premières grandes compositions qui portent `morceau`, une graine avec plan chacune. */
 function mondesAvec(morceau: string, nombre: number): DefMonde[] {
@@ -97,34 +98,37 @@ describe('M-12 dans les grandes stations (#236)', () => {
   const mondes = mondesAvec('m-12', 30);
   const DRONE = 'm-12/o-drone';
 
-  it('rail, poignée et chariot restent dans leur morceau ; aucune porte de boucle sur la réserve', () => {
+  it('le chariot reste dans son morceau, le drone peut en sortir ; aucune porte de boucle sur la réserve', () => {
     expect(mondes.length).toBe(30);
+    expect(new Set(mondes.map((monde) => monde.objets.find((candidat) => candidat.id === DRONE)?.piece.split('/')[0])).size).toBeGreaterThan(1);
     for (const monde of mondes) {
       const objet = (id: string) => monde.objets.find((candidat) => candidat.id === id);
-      expect(objet(DRONE), monde.id).toMatchObject({ piece: 'm-12/p-atelier', drone: { rail: 'm-12/l-atelier-poste', poignee: 'm-12/o-poignee' } });
-      expect(objet('m-12/o-poignee')?.piece, monde.id).toBe('m-12/p-poste');
+      const drone = objet(DRONE);
+      expect(drone?.drone, monde.id).toEqual({ obstacle: 'm-12/o-chariot' });
+      expect(drone === undefined ? null : cheminDrone(monde, DRONE, drone.piece), monde.id).not.toBeNull();
       expect(objet('m-12/o-chariot'), monde.id).toMatchObject({ piece: 'm-12/p-palier', obstacle: { passage: 'm-12/l-palier-quai' } });
       for (const boucle of monde.boucles ?? []) expect(monde.liaisons.find((liaison) => liaison.id === boucle)?.entre, `${monde.id} : ${boucle}`).not.toContain('m-12/p-stockage');
     }
   });
 
-  it('déraillé, le drone se replace puis se réarme sur place, tient la poignée, et le chariot rangé libère le passage', () => {
-    for (const monde of mondes) {
+  it('renversé, le drone se redresse puis se relance sur place, et le chariot rangé libère le passage', () => {
+    for (const base of mondes) {
+      // Drone posé au palier, sans créature : seules les règles du drone et du chariot jouent.
+      const monde = avecDroneEn(base, DRONE, 'm-12/p-galerie');
       const depart = nouvellePartie(monde, { version: 'm12-grande', graine: 236 });
-      // Sans créature, depuis l'atelier : seules les règles du drone et du chariot jouent.
-      let partie: Partie = { ...depart, etat: { ...depart.etat, piece: 'm-12/p-atelier', creature: null } };
+      const ouvertes = Object.fromEntries(monde.liaisons.filter((liaison) => liaison.entre.some((piece) => piece.startsWith('m-12/'))).map((liaison) => [liaison.id, true]));
+      let partie: Partie = { ...depart, etat: { ...depart.etat, piece: 'm-12/p-galerie', creature: null, visitees: [...depart.etat.visitees, 'm-12/p-palier'], drones: { phases: { [DRONE]: 'pret' }, bruits: [] }, liaisons: { ...depart.etat.liaisons, ...ouvertes } } };
       partie = engager(monde, partie, 'envoyer', DRONE);
-      expect(partie.etat.drones?.phases[DRONE], monde.id).toBe('trajet');
-      // Une attaque l'a sorti du rail (D-305) : il a lâché la poignée.
-      partie = { ...partie, etat: { ...partie.etat, drones: { phases: { ...partie.etat.drones?.phases, [DRONE]: 'deraille' }, tenue: null, bruits: [] } } };
-      partie = engager(monde, partie, 'aller', 'm-12/l-atelier-poste');
+      expect(partie.etat.drones?.phases[DRONE], monde.id).toBe('roule');
+      // Une attaque l'a renversé (D-305) : il n'avance plus.
+      partie = { ...partie, etat: { ...partie.etat, drones: { phases: { ...partie.etat.drones?.phases, [DRONE]: 'deraille' }, bruits: [] } } };
       expect(observer(monde, partie.etat).menu.some((option) => option.action === 'rearmer' && option.disponible), monde.id).toBe(false);
       partie = engager(monde, partie, 'replacer', DRONE);
       partie = engager(monde, partie, 'rearmer', DRONE);
-      expect(partie.etat.drones?.phases[DRONE], monde.id).toBe('maintien');
-      partie = engager(monde, partie, 'aller', 'm-12/l-poste-palier');
-      partie = engager(monde, partie, 'deplacer', 'm-12/o-chariot', 'm-12/pos-rangement');
+      expect(partie.etat.drones?.phases[DRONE], monde.id).toBe('roule');
+      for (let n = 0; n < 3; n++) partie = engager(monde, partie, 'attendre', 'm-12/p-galerie');
       expect(partie.etat.drones?.phases[DRONE], monde.id).toBe('termine');
+      partie = engager(monde, partie, 'aller', 'm-12/l-galerie-palier');
       partie = engager(monde, partie, 'aller', 'm-12/l-palier-quai');
       expect(partie.etat.piece, monde.id).toBe('m-12/p-quai');
     }

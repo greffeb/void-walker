@@ -50,8 +50,8 @@ describe('compositions des grandes stations (D-313, D-315)', () => {
       const base = dessinees(morceauxDe(composition));
       expect(composition.annexes, composition.id).toBe(Math.min(10, 28 - base, Math.max(6, 24 - base)));
     }
-    // Seul un ordre libre avec M-12 et deux chemins de cinq pièces descend à cinq annexes.
-    expect(new Set(grandes.map((composition) => composition.annexes))).toEqual(new Set([5, 6, 7, 8, 9, 10]));
+    // M-12 n'a plus que cinq pièces dessinées (#270) : aucune composition ne descend plus à cinq annexes.
+    expect(new Set(grandes.map((composition) => composition.annexes))).toEqual(new Set([6, 7, 8, 9, 10]));
   });
 
   it('ordre libre : le vestibule donne sur le couloir commun, le troisième chemin suit le sas, la seconde cloison mène à lui', () => {
@@ -176,8 +176,10 @@ describe('compositions des grandes stations (D-313, D-315)', () => {
     expect(avecCapteur / premieres.length).toBeGreaterThanOrEqual(0.1);
     expect(avecCapteur / premieres.length).toBeLessThanOrEqual(0.9);
   }, 120_000);
-  it('la salle de surveillance sur 0,15 à 0,25 des 400 premières publiées, chacune contrôlée ; une station sans salle reste prouvée (créature mobile lot 4)', () => {
-    const premieres = CATALOGUE.publiees.slice(0, 400);
+  it('la salle de surveillance sur 0,15 à 0,25 de 400 publiées réparties sur la liste, chacune contrôlée ; une station sans salle reste prouvée (créature mobile lot 4)', () => {
+    // Échantillon réparti sur toute la liste triée, pas ses premières compositions (#270 : 0,2525 sur les 400 premières, 0,21 sur toutes).
+    const pas = Math.floor(CATALOGUE.publiees.length / 400);
+    const premieres = CATALOGUE.publiees.filter((_, rang) => rang % pas === 0).slice(0, 400);
     let avecSalle = 0;
     let sansSalle: string | undefined;
     for (const id of premieres) {

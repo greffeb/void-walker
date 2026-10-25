@@ -39,6 +39,8 @@ function distances(depart: string, aretes: readonly (readonly [string, string])[
 export function carte(monde: DefMonde, etat: EtatPartie): CartePublique {
   const sousPositions = new Set(monde.pieces.filter((piece) => piece.sousPosition === true).map((piece) => piece.id));
   const ici = pieceDeCarte(monde, etat.piece);
+  // Drone envoyé, même renversé ou sa tâche finie : sa place réelle remplace tout souvenir (#270).
+  const suivi = (objet: string): boolean => !['veille', 'pret'].includes(etat.drones?.phases[objet] ?? 'veille');
   // Connecté au terminal, le passager a vu le plan de toute la station (lot 4) : tout se dessine, mais une pièce jamais visitée reste connue.
   const visitees = monde.pieces
     .filter((piece) => !sousPositions.has(piece.id) && (piece.id === ici || etat.connecte === true || etat.visitees.includes(piece.id)))
@@ -98,18 +100,17 @@ export function carte(monde: DefMonde, etat: EtatPartie): CartePublique {
         // Le capteur posé est connu du passager, qui l'a fixé : son état réel, comme le pictogramme du drone envoyé (créature mobile lot 3).
         ...(capteur?.piece === piece.id ? { capteur: capteur.etat } : {}),
         objets: [
-          ...(souvenir?.objets ?? []).map(({ objet, position }) => ({
+          ...(souvenir?.objets ?? []).filter(({ objet }) => !suivi(objet)).map(({ objet, position }) => ({
             objet: refObjet(monde, objet),
             position: position === undefined ? null : refPosition(monde, position),
             ...(monde.objets.some((definition) => definition.id === objet && definition.drone !== undefined) ? { drone: true as const } : {}),
           })),
-          // Un drone qu'on a envoyé, ou qui tient la poignée, est connu du passager même hors de sa vue : son pictogramme suit sa pièce.
+          // Un drone qu'on a envoyé est connu du passager même hors de sa vue, jusqu'au bout et renversé compris : son
+          // pictogramme suit sa pièce, à la place de tout souvenir (#270).
           ...monde.objets
             .filter((definition) => {
-              const phase = etat.drones?.phases[definition.id];
               const place = etat.objets[definition.id];
-              return (phase === 'trajet' || phase === 'maintien') && place?.type === 'piece' && place.piece === piece.id
-                && souvenir?.objets?.some(({ objet }) => objet === definition.id) !== true;
+              return suivi(definition.id) && place?.type === 'piece' && place.piece === piece.id;
             })
             .map((definition) => ({ objet: refObjet(monde, definition.id), position: null, drone: true as const })),
         ],

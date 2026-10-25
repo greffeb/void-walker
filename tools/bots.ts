@@ -108,7 +108,7 @@ function situation(observation: Observation): string {
     observation.enfilee?.id ?? null,
     observation.machines,
     observation.gravite,
-    ...(observation.drones === undefined ? [] : [observation.drones, observation.freins, observation.poigneeTenue ?? null]),
+    ...(observation.drones === undefined ? [] : [observation.drones, observation.obstacles]),
   ]);
 }
 

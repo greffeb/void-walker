@@ -70,7 +70,7 @@ describe('ouvrirTerritoire (spec créature mobile §territoire)', () => {
       { liaison: { manoeuvre: 'o-levier' } },
       { liaison: { cachee: 'o-panneau' } },
       { liaison: { haute: 'o-caisse' } },
-      { objet: { piece: 'p3', obstacle: { passage: 'l34', rangement: 'p3', maintien: 'p3' } } },
+      { objet: { piece: 'p3', obstacle: { passage: 'l34', rangement: 'p3' } } },
       { objet: { piece: 'p3', capsule: { interieur: 'p4' } } },
       { objet: { piece: 'p4', vitrageExterieur: true } },
       { piece: { feu: true } },

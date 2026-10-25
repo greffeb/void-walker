@@ -1,5 +1,7 @@
-import { assemblerStation, empreinte, nouvellePartie, observer, jouer, type DefMonde, type Des, type EtatPartie, type OptionMenu, type Partie } from '../engine';
+import { assemblerStation, empreinte, menu, nouvellePartie, observer, jouer, type DefMonde, type Des, type EtatPartie, type OptionMenu, type Partie } from '../engine';
 import { generateurDepuisGraine, suivant } from '../engine/des';
+import { avecDroneEn, placesDuDrone } from '../engine/drone';
+import { construireTemoin } from './construire-temoin';
 import {
   COMPOSITIONS_PUBLIEES,
   creerCatalogue,
@@ -581,6 +583,61 @@ export function verifierCatalogue(catalogue: Catalogue, options: OptionsVerifica
   return catalogue.compositions.map((composition) => verifierComposition(catalogue, composition, options));
 }
 
+/**
+ * Une station à drone vaut pour toutes ses graines, donc pour chaque place où l'assemblage peut tirer le drone (#270) : chacune
+ * est prouvée, jusqu'à la première qui échoue ; états et durées s'additionnent, et le diagnostic nomme la place en échec.
+ */
+export function verifierChaquePlace<Rapport extends RapportStation>(entree: EntreeMonde, verifier: (entree: EntreeMonde) => Rapport, construire = true): Rapport {
+  const drone = entree.monde.objets.find((objet) => objet.drone !== undefined);
+  const places = drone === undefined ? [] : placesDuDrone(entree.monde, drone.id, new Set(cloisonsDuCarrefour(entree.monde)));
+  if (drone === undefined || places.length === 0) return verifier(entree);
+  let total: Rapport | null = null;
+  for (const place of places) {
+    const ici = { ...entree, monde: avecDroneEn(entree.monde, drone.id, place) };
+    // D'abord un parcours construit par mécanismes et rejoué par les vraies règles (#292) ; la recherche complète seulement à défaut.
+    const construit = construire ? prouverParConstruction(ici) : null;
+    const rapport = construit === null ? verifier(ici) : ({ ...construit, ordres: ['prouvee', 'prouvee'], coupees: true } as unknown as Rapport);
+    total = total === null ? rapport : { ...rapport, etats: total.etats + rapport.etats, secondes: total.secondes + rapport.secondes };
+    if (rapport.verdict !== 'prouvee') return { ...total, diagnostic: `Drone en ${place} : ${rapport.diagnostic}` };
+  }
+  return total ?? verifier(entree);
+}
+
+/**
+ * Preuve sans recherche (#292) : un parcours construit pour chaque ordre des cloisons de l'ordre libre, rejoué par le menu public
+ * jusqu'à l'évacuation sans dé ni blessure, en levant les cloisons dans cet ordre. `null` si l'un manque.
+ */
+function prouverParConstruction(entree: EntreeMonde): RapportStation | null {
+  const debut = performance.now();
+  const cloisons = cloisonsDuCarrefour(entree.monde);
+  if (cloisons.length === 2 && !cloisons.every((cloison) => capsuleCoupee(entree.monde, cloison))) return null;
+  const ordres = cloisons.length === 0 ? [[]] : [cloisons, [...cloisons].reverse()];
+  let longueur = 0;
+  for (const ordre of ordres) {
+    const pas = construireTemoin(entree, ordre);
+    if (pas === null) return null;
+    let partie = nouvellePartie(entree.monde, { version: VERSION, graine: GRAINE });
+    const levees: string[] = [];
+    for (const [action, cible, parametre] of pas) {
+      const option = menu(entree.monde, partie.etat).find(
+        (candidate) => candidate.action === action && candidate.cible.id === cible && (parametre === undefined ? candidate.parametre === undefined : candidate.parametre?.id === parametre),
+      );
+      if (option === undefined || !option.disponible) return null;
+      const avant = partie.etat.verrous ?? [];
+      const resultat = jouer(entree.monde, partie, option.commande);
+      if (resultat.type !== 'engagee' || resultat.tirages.length > 0 || resultat.partie.etat.sante !== 'indemne') return null;
+      partie = resultat.partie;
+      levees.push(...avant.filter((cloison) => !(partie.etat.verrous ?? []).includes(cloison)));
+    }
+    if (partie.etat.fin !== 'evacuation' || (ordre.length > 0 && levees.join() !== ordre.join())) return null;
+    longueur = Math.max(longueur, pas.length);
+  }
+  return {
+    verdict: 'prouvee', etats: 0, secondes: (performance.now() - debut) / 1000, parcours: null, ecartes: { des: 0, blessures: 0 },
+    diagnostic: `Parcours sûr construit et rejoué (${longueur} actions), sans recherche.`,
+  };
+}
+
 /** Une composition, vérifiée sur sa station de référence ; refusée par la table ou par sa place, sans assemblage ni recherche. */
 /**
  * Plafond relevé pour les compositions qui contiennent ces morceaux (#232) : M-12 multiplie les états (six portes, phases du
@@ -609,8 +666,10 @@ export function verifierComposition(catalogue: Catalogue, composition: Compositi
   const station = stationDeReference(catalogue, composition.id);
   if ('refus' in station) return sansVerification('non_prouvee', station.refus);
   const recherche = optionsDe(composition, options);
-  const libre = composition.forme === 'libre' ? verifierLibre(station.entree, recherche) : null;
-  const { verdict, etats, secondes, diagnostic, parcours } = libre ?? verifierStation(station.entree, recherche);
+  // Un plafond demandé explicitement demande une recherche : pas de parcours construit.
+  const construire = options.maxEtats === undefined;
+  const libre = composition.forme === 'libre' ? verifierChaquePlace(station.entree, (entree) => verifierLibre(entree, recherche), construire) : null;
+  const { verdict, etats, secondes, diagnostic, parcours } = libre ?? verifierChaquePlace(station.entree, (entree) => verifierStation(entree, recherche), construire);
   const actions = parcours === null ? null : parcours.etapes.length;
   const ordres = libre === null ? {} : { ordres: libre.ordres };
   return { composition: composition.id, verdict, graine: station.graine, etats, secondes, actions, diagnostic, empreintes, ...ordres };

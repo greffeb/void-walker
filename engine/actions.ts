@@ -1,7 +1,7 @@
 import { capteurPose } from './capteur';
 import { pieceDeCarte } from './carte';
 import { dangerConnu, type SonEmis } from './creature';
-import { ACTIONS_DRONE, avecMaintien, frein, obstacleSur, range } from './drone';
+import { ACTIONS_DRONE, obstaclesALArrivee, obstacleSur, range } from './drone';
 import type { Des } from './des';
 import {
   assourdie,
@@ -374,6 +374,7 @@ const aller: ActionEngagee = {
     const piece = refPiece(monde, arrivee);
     const evenements: Evenement[] = [{ type: 'deplacement', passage: refPassage(monde, etat, liaison, etat.piece), piece }];
     if (nouvelle) evenements.push({ type: 'piece_decouverte', piece });
+    evenements.push(...obstaclesALArrivee(monde, suivant, arrivee));
     return { etat: suivant, evenements, franchie: liaison.id };
   },
 };
@@ -423,7 +424,8 @@ const deplacer: ActionEngagee = {
   },
   verifier: (contexte, cible) => {
     const candidat = deplacablesIci(contexte).find((objet) => objet.id === cible);
-    return candidat === undefined ? 'cible_absente' : frein(contexte.monde, contexte.etat, candidat);
+    // Un obstacle matériel ne se range qu'avec son drone (#270).
+    return candidat === undefined ? 'cible_absente' : candidat.obstacle !== undefined ? 'trop_lourd' : null;
   },
   prevoir: ({ monde }, cible, parametre) => ({
     ...SANS_DANGER,
@@ -1057,4 +1059,4 @@ const DEFINITIONS: Readonly<Record<IdAction, DefAction>> = {
   attendre,
 };
 
-export const CATALOGUE = Object.fromEntries(Object.entries(DEFINITIONS).map(([id, action]) => [id, avecMaintien(action)])) as Readonly<Record<IdAction, DefAction>>;
+export const CATALOGUE = DEFINITIONS as Readonly<Record<IdAction, DefAction>>;

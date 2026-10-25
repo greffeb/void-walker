@@ -1,6 +1,7 @@
+import { placerDrones } from './drone';
 import { etendreGrande } from './grande';
 import { validerMonde, type CategoriePiece, type DefAssistance, type DefLiaison, type DefMonde, type DefObjet, type DefPiece, type DefPosition, type FormeAnnexe } from './monde';
-import { liensEnChaine, porteEntre, poserTuiles, prefixer, type Lien } from './pose';
+import { liensEnChaine, porteEntre, poserTuiles, prefixer, sousGraine, type Lien } from './pose';
 
 export { prefixer };
 export type { CategoriePiece, FormeAnnexe };
@@ -266,11 +267,10 @@ function objetDe(morceau: string, objet: DefObjet): DefObjet {
     ...ref(morceau, 'fermeture', objet.fermeture),
     ...ref(morceau, 'deverrouille', objet.deverrouille),
     ...ref(morceau, 'exige', objet.exige),
-    ...(objet.drone === undefined ? {} : { drone: { rail: prefixer(morceau, objet.drone.rail), poignee: prefixer(morceau, objet.drone.poignee) } }),
+    ...(objet.drone === undefined ? {} : { drone: { obstacle: prefixer(morceau, objet.drone.obstacle) } }),
     ...(objet.obstacle === undefined ? {} : { obstacle: {
       passage: prefixer(morceau, objet.obstacle.passage),
       rangement: prefixer(morceau, objet.obstacle.rangement),
-      maintien: prefixer(morceau, objet.obstacle.maintien),
     } }),
     ...(capsule === undefined ? {} : { capsule: { ...capsule, interieur: prefixer(morceau, capsule.interieur) } }),
     ...(avertisseur === undefined ? {} : { avertisseur: { ...avertisseur, piece: prefixer(morceau, avertisseur.piece) } }),
@@ -394,8 +394,10 @@ export const assemblerStation: Assembleur = (station) => {
     creature: { piece: station.creature },
     assistance: [...(station.assistance ?? []), ...morceaux.flatMap((morceau) => (morceau.assistance ?? []).map((message) => assistanceDe(morceau.id, message)))],
   };
-  const final = station.grande === undefined ? monde : etendreGrande(monde, station, station.grande);
-  if (final === null) return { type: 'sans_plan' };
+  const etendu = station.grande === undefined ? monde : etendreGrande(monde, station, station.grande);
+  if (etendu === null) return { type: 'sans_plan' };
+  // Place du drone tirée à chaque petite station (#270) ; une grande la tire avec ses clés, avant le butin (`etendreGrande`).
+  const final = station.grande !== undefined ? etendu : placerDrones(etendu, sousGraine(station.graine, 'drone'), new Set((station.commandes ?? []).map((commande) => commande.cloison)));
   const erreurs = validerMonde(final);
   return erreurs.length > 0 ? { type: 'invalide', erreurs } : { type: 'station', monde: final };
 };

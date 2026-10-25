@@ -33,8 +33,6 @@ export const ACTIONS = [
   'deverrouiller',
   'surveiller',
   'envoyer',
-  'tenir',
-  'lacher',
   'replacer',
   'rearmer',
   'arreter_drone',
@@ -127,15 +125,20 @@ export const TYPES_EVENEMENT = [
   'porte_enfoncee',
   'bruit_station',
   'drone_envoye',
-  'drone_maintient',
   'drone_deraille',
   'drone_replace',
   'drone_rearme',
   'drone_arrete',
   'drone_termine',
   'drone_bruit_arrete',
-  'poignee_tenue',
-  'poignee_lachee',
+  'obstacle_en_travers',
+  'obstacle_degage',
+  'drone_roule',
+  'drone_part',
+  'drone_arrive',
+  'drone_bloque',
+  'drone_gronde',
+  'creature_attiree',
 ] as const;
 export type TypeEvenement = (typeof TYPES_EVENEMENT)[number];
 
@@ -173,8 +176,7 @@ export const RAISONS_REFUS = [
   'enfoncee',
   'sans_carte',
   'sans_mot_de_passe',
-  'lacher_poignee',
-  'frein_serre',
+  'trop_lourd',
   'encombre_par_obstacle',
 ] as const;
 export type RaisonRefus = (typeof RAISONS_REFUS)[number];
@@ -199,8 +201,7 @@ export const RAISONS_INDISPONIBILITE = [
   'enfoncee',
   'sans_carte',
   'sans_mot_de_passe',
-  'lacher_poignee',
-  'frein_serre',
+  'trop_lourd',
   'encombre_par_obstacle',
 ] as const satisfies readonly RaisonRefus[];
 export type RaisonIndisponibilite = (typeof RAISONS_INDISPONIBILITE)[number];
@@ -262,8 +263,16 @@ export type Entendu = 'net' | 'vague' | 'rien' | 'machines' | 'froid';
 export type EntenduRecit = Entendu | 'toujours' | 'plus_rien';
 
 export type Evenement =
-  | { readonly type: 'drone_envoye' | 'drone_maintient' | 'drone_deraille' | 'drone_replace' | 'drone_rearme' | 'drone_arrete' | 'drone_termine' | 'poignee_tenue' | 'poignee_lachee'; readonly objet: RefObjet }
+  | { readonly type: 'drone_envoye' | 'drone_deraille' | 'drone_replace' | 'drone_rearme' | 'drone_arrete' | 'drone_termine'; readonly objet: RefObjet }
   | { readonly type: 'drone_bruit_arrete'; readonly passage: RefPassage }
+  /** En entrant dans sa pièce : l'obstacle barre encore son passage, ou il est rangé et le passage dégagé (#271). */
+  | { readonly type: 'obstacle_en_travers' | 'obstacle_degage'; readonly objet: RefObjet; readonly passage: RefPassage }
+  /** Le drone vu qui se met à rouler, part, arrive ou s'arrête devant une porte fermée (PR #300). */
+  | { readonly type: 'drone_roule' | 'drone_part' | 'drone_arrive' | 'drone_bloque'; readonly objet: RefObjet; readonly passage: RefPassage }
+  /** Son moteur entendu derrière une porte ouverte (PR #300). */
+  | { readonly type: 'drone_gronde'; readonly passage: RefPassage }
+  /** La créature, qu'on entend, suit le grondement du drone (PR #300). */
+  | { readonly type: 'creature_attiree'; readonly objet: RefObjet }
   | { readonly type: 'reveil'; readonly piece: RefPiece }
   | { readonly type: 'objet_pris'; readonly objet: RefObjet; readonly piece: RefPiece }
   | { readonly type: 'objet_pose'; readonly objet: RefObjet; readonly piece: RefPiece }
@@ -452,8 +461,6 @@ export const TYPES_SAVOIR = [
   'bouclera',
   'deverrouillera',
   'enverra_drone',
-  'tiendra',
-  'lachera',
   'replacera_drone',
   'rearmera_drone',
   'arretera_drone',
@@ -462,7 +469,7 @@ export type TypeSavoir = (typeof TYPES_SAVOIR)[number];
 
 /** Conséquence connue du passager avant d'agir (C-06 §4) : jamais un secret ni un résultat de dé. */
 export type Savoir =
-  | { readonly type: 'enverra_drone' | 'tiendra' | 'lachera' | 'replacera_drone' | 'rearmera_drone' | 'arretera_drone'; readonly objet: RefObjet }
+  | { readonly type: 'enverra_drone' | 'replacera_drone' | 'rearmera_drone' | 'arretera_drone'; readonly objet: RefObjet }
   | { readonly type: 'portera'; readonly objet: RefObjet }
   | { readonly type: 'laissera'; readonly objet: RefObjet; readonly piece: RefPiece }
   | { readonly type: 'ouvrira'; readonly passage: RefPassage }
@@ -557,7 +564,11 @@ export interface ObjetCarte {
   readonly drone?: true;
 }
 
-export type PhaseDrone = 'veille' | 'trajet' | 'maintien' | 'deraille' | 'a_rearmer' | 'arrete' | 'termine';
+/**
+ * `pret` : au repos, son obstacle vu par le passager ; `trajet` : à l'arrêt dans une pièce, prêt à repartir ou devant une porte
+ * fermée ; `roule` : à mi-chemin de la suivante (#270).
+ */
+export type PhaseDrone = 'veille' | 'pret' | 'trajet' | 'roule' | 'traction' | 'deraille' | 'a_rearmer' | 'arrete' | 'termine';
 
 /** Une pièce que le passager connaît, telle qu'il l'a vue (14 §3.4). */
 export interface PieceCarte {
@@ -618,8 +629,8 @@ export interface CartePublique {
 export interface Observation {
   /** Seulement dans les mondes concernés ; seuls les drones de la pièce actuelle sont renseignés. */
   readonly drones?: readonly { readonly objet: RefObjet; readonly phase: PhaseDrone }[];
-  readonly poigneeTenue?: RefObjet;
-  readonly freins?: readonly { readonly objet: RefObjet; readonly desserre: boolean }[];
+  /** Obstacles matériels de la pièce actuelle, rangés ou non, avec le passage qu'ils barrent (#271). */
+  readonly obstacles?: readonly { readonly objet: RefObjet; readonly passage: RefPassage; readonly range: boolean }[];
   /** Caméras lues en direct, dans l'ordre du monde : seulement connecté, dans la salle de surveillance (lot 4). */
   readonly cameras?: readonly { readonly piece: RefPiece; readonly etat: EtatCapteur }[];
   readonly piece: RefPiece;

@@ -1,14 +1,14 @@
 # Morceaux du lancement — conception
 
 > **Statut :** CONCEPTION ACCEPTÉE v1.0 — cadre D-156 à D-171 ; familles, fiches, règles de mélange MX-01 à MX-05 et parcours acceptés par D-172 à D-175 ; cadrage L0 accepté par D-257 à D-260 (§8) ; places de la créature dans M-07 et M-03 fixées par D-261, qui modifie la fiche M-07, et D-262 (§7.5) ; conception de L3 (M-06, M-08, M-09, stations à deux chemins) approuvée par D-264 et D-265 (§7.6) ; conception de L4 (M-01, M-02, M-04, M-05) approuvée par D-268 et D-269 (§7.7) ; conception de L5 (ordre libre, mesures) approuvée par D-270 (§7.8) ; conception des grandes stations habitées approuvée par D-313 à D-327 (§7.12 à §7.14) ; demande du porteur sur « Poser » : D-328 (§7.14) ; M-11 et M-12 tirés dans les grandes stations, D-329, proposés par la PR de #236 (§7.15) ; M-11, sas de sécurité (#203), fixé par D-290 à D-293 et proposé par sa PR en zone orange (§7.10).
-> **Mise à jour :** 2026-10-21.
+> **Mise à jour :** 2026-10-25 (M-12 refondu, #270, §7.16).
 > **Implémentation :** règles des quatre nouveaux morceaux et des mélanges MX-01, MX-04, MX-05 proposées par #105, chacune prouvée dans une station de test (`?monde=m-07` à `m-10`) ; précisions du porteur D-234 à D-240. Assemblage des stations : #106, petites stations d'abord (D-242), objets dans leur morceau (D-244), découpage accepté au §7 (D-245), règles d'assemblage D-246 à D-256 ; L2 fusionnée (PR #160) ; L3 fusionnée (PR #168) ; L4 fusionnée (PR #172) ; L5 fusionnée (PR #179) ; L6 fusionnée (PR #189) ; grandes stations, livraison 1 (§7.12), livraison 2, clés dispersées et butin (§7.13), et livraison 3, lore et documents (§7.14), proposées par leur PR ; M-11 proposé par la PR de #203 (§7.10). **Parties sur téléphone :** deux parties signées en L2, avec M-07 et M-03 ([journal](journal-parties-humaines.md)) ; aucune consignée pour les neuf autres morceaux.
 
 Document d'auteur : il contient les solutions. Interdit au playtester (C-01). Le lore des grandes stations a sa propre bible, [17 — univers](17-univers.md), au même accès : interdite au playtester.
 
 ## 1. Cadre accepté
 
-- Socle de dix morceaux : six tirés d'AR-01/AR-02, quatre nouveaux (D-157/D-158). M-11, sas de sécurité, a rejoint la branche principale par #231. M-12 ajoute le chariot et le drone réparable (D-304 à D-307, #232).
+- Socle de dix morceaux : six tirés d'AR-01/AR-02, quatre nouveaux (D-157/D-158). M-11, sas de sécurité, a rejoint la branche principale par #231. M-12 ajoute le chariot et le drone réparable (D-304 à D-307, #232), refondu par #270 : chariot trop lourd, drone à retrouver (D-366 à D-369).
 - Une station : une pièce de départ, deux ou trois obstacles dont **un seul problème final**, l'embarquement avec sa capsule, une seule créature (D-119, D-159, GP-02).
 - Obstacles en chaîne ou en ordre libre (D-160) ; créature placée à un endroit prévu par un morceau, jamais au départ (D-161) ; tirage du problème final à pile ou face, puis de la station au pur hasard parmi celles qui ont ce final, une station déjà jouée pouvant revenir (D-162, D-253).
 - Deux morceaux qui jouent sur la même chose (bruit, ralentissement, neutralisation, air) ne se mélangent qu'une fois leurs règles décidées (D-167) ; les autres se mélangent sans règle de plus (D-248).
@@ -107,18 +107,16 @@ Dans une grande station, chaque morceau déclare aussi les pièces où une pièc
 - **Sûr :** prendre la carte au vestiaire, revenir au poste, actionner le lecteur carte en main (le verrou est levé pour la partie, D-291), ouvrir la porte blindée et passer.
 - **Risqué :** ouvrir la remise et réveiller la créature, puis se réfugier derrière la porte blindée refermée, qu'elle ne peut pas enfoncer.
 
-### M-12 — Le chariot bloqué et le drone réparable (#232)
+### M-12 — Le chariot trop lourd et le drone à retrouver (#232, refondu par #270)
 
-- **But :** dégager un chariot qui barre le chemin vers la suite. Il faut maintenir une poignée au poste pendant que le passager pousse au palier : deux lieux, deux rôles.
-- **Pièces :** atelier du drone, galerie de détour, poste, palier du chariot, réserve et quai de sortie. Le plan distingue le trajet du passager et le trajet local du drone ; aucune commande ne téléporte un objet à travers une porte fermée.
-- **Créature :** place prévue dans la réserve. Une fermeture peut gagner du temps après la rencontre ; elle ne garantit pas une protection permanente. L'ouverture de la porte de réserve et les autres passages sont décrits dans le contenu.
-- **Demande / fournit :** coopération avec le drone ; accès durable une fois le chariot rangé. Sans drone en maintien, le passager ne peut pas tenir la poignée et pousser ailleurs. Il n'y a pas la manivelle autonome de la première maquette.
-- **Drone :** activation locale, trajet de manutention puis maintien bruyant. Il ne combat pas, ne ramasse rien et ne devient pas un compagnon universel. La tâche se termine quand le chariot est déplacé.
-- **Panne récupérable :** une attaque le sort du rail, interrompt le maintien et coupe le moteur. Deux gestes sur place : replacer, puis réarmer/relancer. Aucun consommable ; les dangers continuent pendant ces gestes.
-- **Préparation sûre à prouver :** isoler le bruit de la réserve avant la mise en route, déléguer le maintien, rejoindre le palier, pousser et poursuivre la station.
-- **Variante risquée à prouver :** après une rencontre ou une panne, reprendre la coopération en utilisant le plan, les portes et le répit réel. Le coût en blessures dépend de C-04, pas des résultats déterministes de la maquette.
-- **Carte :** pictogramme vert du drone dans son dernier emplacement observé, sans déplacement omniscient hors de vue (D-307).
-- **État des preuves :** conception retenue pour intégration ; tests, parcours complets, vérification du catalogue, relecture et partie sur téléphone doivent être fournis par la PR. Les essais de maquette ne valident pas une partie du vrai jeu.
+- **But :** un chariot trop lourd pour la main barre la porte par où l'on avance. Seul un drone de manutention peut le tirer (D-366).
+- **Pièces :** galerie de service (entrée), atelier de manutention (place d'origine du drone), palier du chariot, réserve de manutention, quai de transfert derrière le chariot. Le quai reste pour l'ordre libre : la commande de la branche y est posée, au-delà de l'obstacle.
+- **Créature :** place prévue dans la réserve, ouverte sur le palier.
+- **Drone :** tiré à chaque station dans une pièce atteinte avant le chariot, parfois loin, derrière un autre obstacle ou dans l'autre branche ; jamais dans le repaire ni derrière un vide, une grille, un passage étroit ou caché (D-368). Il ne propose sa tâche qu'une fois le chariot vu (D-369). Lancé, il roule seul jusqu'au chariot, deux actions par pièce, s'arrête devant les portes fermées et fait du bruit en roulant et en tirant (D-367).
+- **Panne récupérable :** la créature qui l'entend peut le renverser, en route comme au palier. Deux gestes sur place : redresser, puis relancer (D-305). Le bouton d'arrêt le fait taire ; « Relancer » le remet en route.
+- **Sûr :** voir le chariot, fermer la réserve, revenir au drone, lancer, attendre qu'il passe, puis traverser.
+- **Risqué :** réserve ouverte, la créature vient au bruit du lancement et renverse le drone en route ; le redresser et le relancer sous ses yeux, puis fuir.
+- **Carte :** pictogramme vert du drone ; envoyé, il suit sa vraie pièce jusqu'au bout, renversé compris (D-367).
 
 ## 4. Mélanges
 
@@ -1087,6 +1085,24 @@ Sans butin, les bots évacuent davantage : 1,5 point de plus pour B2, 3,3 points
 **Alerte au porteur.** La cible de 25 à 35 % pour B2 (D-314) n'est toujours pas atteinte : 15,7 %. Les abandons baissent nettement (19,4 % au lieu de 32,9 %), mais ils passent surtout aux défaites (+11,9 points). La rencontre reste tardive : 91 actions en médiane, pour un seuil d'environ 45 (#217). Aucun réglage n'a été touché.
 
 **Captures** : une carte de grande station avec M-11, puis avec M-12, à 390 px, le témoin publié joué jusqu'à son dernier geste exclu (`parcoursGrandesM11M12`, `tools/captures.ts`). `npm run build && npm run captures` : « réussis », code 0 ; captures 103 (`g1-m01-m02-m11-m03-remise-1`) et 104 (`g1-m01-m02-m12-m03-reserve-12`). Les numéros changent quand on relance : `captures/resultat.json` fait foi. Aucun essai sur téléphone.
+
+### 7.16 M-12 refondu : chariot trop lourd et drone à retrouver (#270, #271)
+
+> **Statut :** proposé par la PR de #270, zone orange ; **validation humaine requise** (partie au bout sur téléphone avec M-12). Conception : [drone M-12](superpowers/specs/2026-10-24-drone-m12-design.md) ; décisions D-366 à D-369.
+
+**Moteur.** Le frein, la poignée, « Tenir » et « Lâcher » disparaissent. Qualités `drone: { obstacle }` et `obstacle: { passage, rangement }` (C-02 §5). Le drone passe en phase « prêt » quand le passager entre dans la pièce du chariot : la condition d'envoi vit ainsi dans l'état des règles, que voit la clé du solveur, et non dans les pièces visitées, qu'elle ignore. Lancé, il suit son chemin fixe (`cheminDrone`), deux actions par pièce (`roule` puis passage), attend devant une porte fermée, tire le chariot à l'action suivante. « Plus aucune sortie » (`sortiePossible`) suit ce chemin.
+
+**Place du drone.** Tirée à l'assemblage (`placerDrones`, sous-graine `drone`), petites stations comprises, parmi les pièces atteintes avant le chariot (`placesDuDrone`). Jamais au départ (GP-04, vestibule vide), ni au repaire de la créature (chemin sûr, D-084), ni derrière un vide, une grille, un passage étroit ou caché, ni derrière une cloison de l'ordre libre (sinon le drone imposerait l'ordre des branches). Il peut être derrière le sas de M-11, ou dans l'autre branche.
+
+**Preuve.** Une petite station vaut pour toutes ses graines : elle est prouvée à chacune de ses places de drone (`verifierChaquePlace`). Chaque place se prouve d'abord par un parcours construit par mécanismes et rejoué par les vraies règles (`construireTemoin`, #292), la recherche complète seulement à défaut. Le constructeur a une recette pour le drone : voir le chariot, ouvrir les portes du chemin, lancer, attendre le rangement. `check:stations` sans cache : 807 s (environ 8 min avant).
+
+**Catalogue.**
+- M-12 ne permet plus de se débarrasser de la créature qui bouche M-01 ou M-02 (D-307, limite) : le drone se tait une fois le chariot rangé. M-12 sort d'`AIDES` ; 60 compositions bouchées au lieu de 56.
+- 14 compositions permises et non bouchées ne se prouvent pas pour au moins une place du drone, dans la limite du vérificateur ou par le constructeur : un drone posé loin multiplie les états (M-04, M-05, M-10, M-11, créature dans la réserve de M-12). Le porteur : « sinon on les retire du tirage ». Elles sont listées dans `SANS_PREUVE_DRONE`.
+- Publiées : 516 en chaîne (524 avant), 224 en ordre libre (234 avant).
+- Grandes stations : générateur 5, 2 095 stations publiées (695 en ordre libre) sur 1 080 compositions, en 147 s. Trois compositions perdent toutes leurs variantes, pour la même raison que les bouchées (`--accepter=` de `publier:grandes`).
+
+**Reste à faire.** Partie au bout sur téléphone avec M-12 ; relecture des textes par le porteur (« Texte final non validé »).
 
 ## 8. Cadrage L0 (#150) accepté par le porteur
 

@@ -50,6 +50,13 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
     case 'reveil':
     case 'piece_decouverte':
       return { piece: nomDe(textes, evenement.piece) };
+    case 'obstacle_en_travers':
+    case 'obstacle_degage':
+    case 'drone_roule':
+    case 'drone_part':
+    case 'drone_arrive':
+    case 'drone_bloque':
+      return { objet: nomDe(textes, evenement.objet), passage: nomDe(textes, evenement.passage) };
     case 'objet_pris':
     case 'objet_pose':
       return { objet: nomDe(textes, evenement.objet), piece: nomDe(textes, evenement.piece) };
@@ -67,6 +74,7 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
     case 'bruit_mecanisme':
     case 'bruit_creature':
     case 'drone_bruit_arrete':
+    case 'drone_gronde':
     case 'creature_entre':
     case 'feu_derriere':
     case 'creature_glisse':
@@ -133,15 +141,13 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
     case 'machines_arretees':
     case 'machines_relancees':
     case 'cloison_deverrouillee':
+    case 'creature_attiree':
     case 'drone_envoye':
-    case 'drone_maintient':
     case 'drone_deraille':
     case 'drone_replace':
     case 'drone_rearme':
     case 'drone_arrete':
     case 'drone_termine':
-    case 'poignee_tenue':
-    case 'poignee_lachee':
       return { objet: nomDe(textes, evenement.objet) };
     case 'gravite_coupee':
     case 'gravite_retablie':
@@ -394,8 +400,9 @@ export function rendreObservation(textes: TextesMonde, observation: Observation)
   }
   for (const objet of observation.actives) lignes.push(remplir(modele.active, { objet: nomDe(textes, objet) }));
   for (const { objet, phase } of observation.drones ?? []) lignes.push(remplir(modele[`drone_${phase}`], { objet: nomDe(textes, objet) }));
-  if (observation.poigneeTenue !== undefined) lignes.push(remplir(modele.poigneeTenue, { objet: nomDe(textes, observation.poigneeTenue) }));
-  for (const { objet, desserre } of observation.freins ?? []) lignes.push(remplir(desserre ? modele.freinDesserre : modele.freinSerre, { objet: nomDe(textes, objet) }));
+  for (const { objet, passage, range } of observation.obstacles ?? []) {
+    lignes.push(remplir(range ? modele.obstacleRange : modele.obstacleBarre, { objet: nomDe(textes, objet), passage: nomDe(textes, passage) }));
+  }
   if (observation.feu) lignes.push(remplir(modele.feu, {}));
   if (observation.sansAir) lignes.push(remplir(modele.sansAir, {}));
   for (const objet of observation.percees) lignes.push(remplir(modele.percee, { objet: nomDe(textes, objet) }));
@@ -439,8 +446,6 @@ function valeursSavoir(textes: TextesMonde, savoir: Savoir): Record<string, Nom 
   switch (savoir.type) {
     case 'portera':
     case 'enverra_drone':
-    case 'tiendra':
-    case 'lachera':
     case 'replacera_drone':
     case 'rearmera_drone':
     case 'arretera_drone':

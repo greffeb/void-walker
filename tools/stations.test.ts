@@ -18,6 +18,7 @@ import {
 import { suivant } from '../engine/des';
 import {
   COMPOSITIONS_PUBLIEES,
+  SANS_PREUVE_DRONE,
   creerCatalogue,
   fuitesDeCouches,
   MONDES,
@@ -754,16 +755,16 @@ describe('compositions', () => {
     expect(COMPOSITIONS_PUBLIEES).toEqual(expect.arrayContaining([...PUBLIEES_L3]));
   });
 
-  it('publication (spec L4 §4, L5 §4) : en chaîne, aucune composition palier ou atelier sans M-04, M-07, M-08, M-10 ni M-12 avant la place ; en ordre libre, toutes celles que leur place n’écarte pas', () => {
-    const AIDES = ['m-04', 'm-07', 'm-08', 'm-10', 'm-12'];
+  it('publication (spec L4 §4, L5 §4) : en chaîne, aucune composition palier ou atelier sans M-04, M-07, M-08 ni M-10 avant la place, ni sans preuve de drone (#270) ; en ordre libre, toutes celles que leur place n’écarte pas', () => {
+    const AIDES = ['m-04', 'm-07', 'm-08', 'm-10'];
     const bouchees = CATALOGUE.compositions.filter(({ forme, chemins, creature }) => {
       if (forme !== 'chaine' || (creature !== 'm-01/p-palier' && creature !== 'm-02/p-atelier')) return false;
       const avant = chemins.slice(0, chemins.indexOf(creature.slice(0, creature.indexOf('/'))));
       return !avant.some((chemin) => AIDES.includes(chemin));
     });
-    expect(bouchees).toHaveLength(56);
+    expect(bouchees).toHaveLength(60);
     const bouchee = new Set(bouchees.map(({ id }) => id));
-    expect(COMPOSITIONS_PUBLIEES).toEqual(CATALOGUE.compositions.filter(({ id, refus }) => refus === null && !bouchee.has(id)).map(({ id }) => id));
+    expect(COMPOSITIONS_PUBLIEES).toEqual(CATALOGUE.compositions.filter(({ id, refus }) => refus === null && !bouchee.has(id) && !SANS_PREUVE_DRONE.includes(id)).map(({ id }) => id));
   });
 
   it('identifiants de composition uniques, triés, minuscules, chiffres et tirets, 29 caractères au plus : avec la graine, 40 au plus', () => {
