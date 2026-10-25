@@ -70,6 +70,11 @@ export interface DefMorceau {
   /** Pour la famille `annexe` seulement. */
   readonly annexe?: DefAnnexe;
   readonly grande?: DefGrandeMorceau;
+  /**
+   * Nom d'une pièce quand sa tuile est retournée sur cet axe, par identifiant de pièce : les noms qui disent une direction
+   * (est, ouest ; nord, sud) suivent la place de la pièce sur la carte (#296).
+   */
+  readonly nomsRetournes?: Readonly<Record<string, { readonly axe: 'x' | 'y'; readonly nom: string }>>;
 }
 
 /** Porte qui accroche un morceau, par son entrée, à une pièce d'un morceau placé avant lui (ordre libre, D-259). */
@@ -371,7 +376,9 @@ export const assemblerStation: Assembleur = (station) => {
       morceau.pieces.map((piece) => {
         const id = prefixer(morceau.id, piece.id);
         const plan = pose.rects.get(id);
-        return plan === undefined ? { ...piece, id } : { ...piece, id, plan };
+        const retourne = morceau.nomsRetournes?.[piece.id];
+        const nom = retourne !== undefined && pose.miroirs.get(id) === retourne.axe ? retourne.nom : piece.nom;
+        return plan === undefined ? { ...piece, id, nom } : { ...piece, id, nom, plan };
       }),
     ),
     liaisons,
