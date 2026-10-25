@@ -48,6 +48,11 @@ describe('état de la vérification publié avec la version de test (#180)', () 
     ]);
   });
 
+  it('une grande composition a son lien, comme `?station=` dans le jeu (#283)', () => {
+    const id = CATALOGUE.grandes[0]!.id;
+    expect(liensDeTest([id], ADRESSE, CATALOGUE)).toEqual(['**À tester :**', `- [${id}](${ADRESSE}?station=${id}), un plan tiré à chaque nouvelle partie`]);
+  });
+
   it('les liens suivent l’état, au début comme à la fin de la CI', () => {
     const liens = liensDeTest(['m-12'], ADRESSE, CATALOGUE);
     const debut = composerCommentaire({ etat: 'en_cours', adresse: ADRESSE, commit: COMMIT, liens }).split('\n');
