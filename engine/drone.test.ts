@@ -117,6 +117,63 @@ function prete(raccourci: boolean, monde = MONDE): Partie {
 }
 const ou = (partie: Partie) => [partie.etat.drones?.phases.x, partie.etat.objets.x?.type === 'piece' ? partie.etat.objets.x.piece : null];
 const proposeEnvoyer = (partie: Partie) => observer(MONDE, partie.etat).menu.some((option) => option.action === 'envoyer');
+/** Événements du drone de ce geste, réduits à leur type et à leur passage. */
+function recitDrone(partie: Partie, action: string, cible: string, monde = MONDE): { partie: Partie; recit: string[] } {
+  const resultat = jouer(monde, partie, commande(action, cible));
+  if (resultat.type !== 'engagee') throw new Error(`${action} ${cible} non engagée.`);
+  const recit = resultat.evenements
+    .filter((evenement) => evenement.type.startsWith('drone_') || evenement.type === 'creature_attiree')
+    .map((evenement) => ('passage' in evenement && evenement.passage !== undefined ? `${evenement.type} ${evenement.passage.id}` : evenement.type));
+  return { partie: resultat.partie, recit };
+}
+
+describe('récit du drone à chaque action (retours du porteur, PR #300)', () => {
+  const id = (liaison: string) => idPublic(MONDE.id, liaison);
+  it('vu : il part, il arrive, il s’arrête devant une porte fermée', () => {
+    let { partie, recit } = recitDrone(prete(false), 'envoyer', 'x');
+    expect(recit).toEqual(['drone_envoye']);
+    ({ partie, recit } = recitDrone(partie, 'attendre', 'a'));
+    expect(recit).toEqual([`drone_part ${id('ab')}`]);
+    ({ partie, recit } = recitDrone(partie, 'aller', 'ab'));
+    expect(recit).toEqual([`drone_bloque ${id('bd')}`]);
+  });
+  it('entendu : derrière une porte ouverte, son moteur gronde à chaque action ; hors de portée, rien', () => {
+    let { partie, recit } = recitDrone(prete(true), 'envoyer', 'x');
+    ({ partie, recit } = recitDrone(partie, 'attendre', 'a'));
+    expect(recit).toEqual([`drone_part ${id('ab')}`]);
+    ({ partie, recit } = recitDrone(partie, 'attendre', 'a'));
+    expect(recit).toEqual([`drone_entendu ${id('ab')}`]);
+    ({ partie, recit } = recitDrone(partie, 'attendre', 'a'));
+    expect(recit).toEqual([]);
+  });
+  it('la créature qu’on entend suivre le grondement : le récit fait le lien', () => {
+    const monde: DefMonde = {
+      ...MONDE,
+      pieces: [...MONDE.pieces, { id: 'r', nom: 'r' }],
+      liaisons: [...MONDE.liaisons, { id: 'dr', nom: 'porte', entre: ['d', 'r'], ouverte: true }],
+      creature: { piece: 'r' },
+    };
+    const initiale = debut(monde);
+    // Drone en route depuis b, raccourci ouvert ; le passager écoute depuis c, ouvert sur le palier seulement.
+    let partie: Partie = { ...initiale, etat: { ...initiale.etat, piece: 'c', visitees: ['a', 'b', 'c', 'd'], drones: { phases: { x: 'trajet' }, bruits: [] },
+      objets: { ...initiale.etat.objets, x: { type: 'piece', piece: 'b' } }, liaisons: { ...initiale.etat.liaisons, bd: true, bc: false, ce: false } } };
+    const recits: string[] = [];
+    for (let n = 0; n < 6 && !recits.includes('creature_attiree'); n++) {
+      const suivant = recitDrone(partie, 'attendre', 'c', monde);
+      partie = suivant.partie;
+      recits.push(...suivant.recit);
+    }
+    expect(recits).toContain('creature_attiree');
+  });
+  it('vu : il arrive dans la pièce du passager, puis repart', () => {
+    let partie = pas(prete(true), 'envoyer', 'x');
+    let recit: string[];
+    ({ partie, recit } = recitDrone(partie, 'aller', 'ab'));
+    expect(recit).toEqual([`drone_arrive ${id('ab')}`]);
+    ({ partie, recit } = recitDrone(partie, 'attendre', 'b'));
+    expect(recit).toEqual([`drone_roule ${id('bd')}`]);
+  });
+});
 
 describe('le drone roule seul et tire l’obstacle', () => {
   it('voir le palier rend le drone prêt : un fait des règles, que la clé du solveur voit (#270)', () => {

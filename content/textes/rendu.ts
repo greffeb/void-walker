@@ -52,6 +52,10 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
       return { piece: nomDe(textes, evenement.piece) };
     case 'obstacle_en_travers':
     case 'obstacle_degage':
+    case 'drone_roule':
+    case 'drone_part':
+    case 'drone_arrive':
+    case 'drone_bloque':
       return { objet: nomDe(textes, evenement.objet), passage: nomDe(textes, evenement.passage) };
     case 'objet_pris':
     case 'objet_pose':
@@ -70,6 +74,7 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
     case 'bruit_mecanisme':
     case 'bruit_creature':
     case 'drone_bruit_arrete':
+    case 'drone_entendu':
     case 'creature_entre':
     case 'feu_derriere':
     case 'creature_glisse':
@@ -136,6 +141,7 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
     case 'machines_arretees':
     case 'machines_relancees':
     case 'cloison_deverrouillee':
+    case 'creature_attiree':
     case 'drone_envoye':
     case 'drone_deraille':
     case 'drone_replace':

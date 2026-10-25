@@ -348,9 +348,11 @@ function reaction(
   // Le passager l'entend déjà bouger ou arriver : le récit n'a pas besoin de l'indice en plus (D-111, récits de 2 à 4 phrases).
   const annonce = (reponse: Reponse): boolean =>
     reponse.evenements.some((evenement) => ['bruit_creature', 'creature_entre', 'creature_glisse', 'porte_secouee', 'porte_enfoncee'].includes(evenement.type));
+  // Elle part vers un drone qui gronde et le passager l'entend : le récit fait le lien, une fois par nouvelle piste (PR #300).
+  const attiree: Evenement[] = son?.drone !== undefined && creature.indice?.piece !== son.piece ? [{ type: 'creature_attiree', objet: refObjet(monde, son.drone) }] : [];
   const suite = (reponse: Reponse): Reponse => ({
     ...reponse,
-    evenements: annonce(reponse) ? reponse.evenements : [...entendus, ...reponse.evenements],
+    evenements: annonce(reponse) ? [...reponse.evenements, ...attiree] : [...entendus, ...reponse.evenements],
     ...(son?.pas === 'pas' ? { ecoutee: true } : {}),
   });
   // Une nouvelle piste lui rend le droit de fouiller autour de son bout.

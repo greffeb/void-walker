@@ -3,7 +3,7 @@ import type { SonEmis } from './creature';
 import { generateurDepuisGraine, suivant } from './des';
 import { assourdie, autreCote, objetsDans, refObjet, refPassage, type EtatPartie } from './etat';
 import { indexer, type DefLiaison, type DefMonde, type DefObjet } from './monde';
-import type { Evenement, PhaseDrone, Savoir } from './vocabulaire';
+import type { Evenement, PhaseDrone, RefPassage, Savoir } from './vocabulaire';
 
 /** Liaisons qu'un drone ne franchit jamais : vide, gabarit étroit, passage haut ou caché, passage d'un obstacle (#270). */
 export function franchissableParDrone(liaison: DefLiaison, monde: DefMonde): boolean {
@@ -273,6 +273,7 @@ export function avancerDrones(monde: DefMonde, avant: EtatPartie, effet: Effet):
       etat = changerPhase(deplace, objet.id, arrivee === obstacle.piece ? 'traction' : 'trajet');
     }
   }
+  evenements.push(...recitDrones(monde, avant, effet, etat));
   // Ordre relatif de démarrage des sources actives : plus récent en dernier, taille bornée par les objets.
   const actives = sources(monde, etat);
   const precedentes = sources(monde, avant);
@@ -280,6 +281,44 @@ export function avancerDrones(monde: DefMonde, avant: EtatPartie, effet: Effet):
   const bruits = [...gardees, ...actives.filter((id) => !gardees.includes(id))];
   if (etat.drones !== undefined) etat = { ...etat, drones: { ...etat.drones, bruits } };
   return { ...effet, etat, evenements };
+}
+
+/**
+ * Ce que le passager perçoit du drone à cette action (retours du porteur, PR #300) : vu, il se met à rouler, part, arrive ou
+ * s'arrête devant une porte fermée ; hors de vue, son moteur gronde derrière une porte ouverte. Rien d'autre hors de vue (C-06 §5).
+ */
+function recitDrones(monde: DefMonde, avant: EtatPartie, effet: Effet, etat: EtatPartie): Evenement[] {
+  const index = indexer(monde);
+  const ici = etat.piece;
+  const bruyants = new Set(sonsDrones(monde, etat).map((son) => son.drone));
+  return monde.objets.flatMap((objet): Evenement[] => {
+    if (objet.drone === undefined) return [];
+    const depart = effet.etat.objets[objet.id];
+    const place = etat.objets[objet.id];
+    if (depart?.type !== 'piece' || place?.type !== 'piece') return [];
+    const drone = refObjet(monde, objet.id);
+    const passage = (liaison: DefLiaison | undefined): RefPassage | undefined => (liaison === undefined ? undefined : refPassage(monde, etat, liaison, ici));
+    const suivante = index.liaisons.get(cheminDrone(monde, objet.id, place.piece)?.[0] ?? '');
+    if (depart.piece !== place.piece) {
+      const franchie = passage(monde.liaisons.find((liaison) => liaison.entre.includes(depart.piece) && liaison.entre.includes(place.piece)));
+      if (franchie === undefined) return [];
+      if (place.piece === ici) return [{ type: 'drone_arrive', objet: drone, passage: franchie }];
+      if (depart.piece === ici) return [{ type: 'drone_part', objet: drone, passage: franchie }];
+    } else if (place.piece === ici) {
+      const avantPhase = effet.etat.drones?.phases[objet.id];
+      const phase = etat.drones?.phases[objet.id];
+      const lance = effet.evenements.some((evenement) => (evenement.type === 'drone_envoye' || evenement.type === 'drone_rearme') && evenement.objet.id === drone.id);
+      const vers = passage(suivante);
+      if (vers === undefined) return [];
+      if (phase === 'roule' && avantPhase !== 'roule' && !lance) return [{ type: 'drone_roule', objet: drone, passage: vers }];
+      if (phase === 'trajet' && etat.liaisons[suivante?.id ?? ''] !== true && (avantPhase === 'roule' || avant.piece !== ici)) return [{ type: 'drone_bloque', objet: drone, passage: vers }];
+      return [];
+    }
+    if (!bruyants.has(objet.id) || assourdie(monde, etat, ici) || assourdie(monde, etat, place.piece)) return [];
+    const lien = monde.liaisons.find((liaison) => liaison.entre.includes(ici) && autreCote(liaison, ici) === place.piece && (etat.liaisons[liaison.id] === true || liaison.sonAuTravers === true));
+    const entendu = passage(lien);
+    return entendu === undefined ? [] : [{ type: 'drone_entendu', passage: entendu }];
+  });
 }
 
 /** En entrant dans une pièce, ce qu'on voit de ses obstacles : celui qui barre encore son passage, celui qui l'a dégagé (#271). */

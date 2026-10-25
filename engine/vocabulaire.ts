@@ -133,6 +133,12 @@ export const TYPES_EVENEMENT = [
   'drone_bruit_arrete',
   'obstacle_en_travers',
   'obstacle_degage',
+  'drone_roule',
+  'drone_part',
+  'drone_arrive',
+  'drone_bloque',
+  'drone_entendu',
+  'creature_attiree',
 ] as const;
 export type TypeEvenement = (typeof TYPES_EVENEMENT)[number];
 
@@ -261,6 +267,12 @@ export type Evenement =
   | { readonly type: 'drone_bruit_arrete'; readonly passage: RefPassage }
   /** En entrant dans sa pièce : l'obstacle barre encore son passage, ou il est rangé et le passage dégagé (#271). */
   | { readonly type: 'obstacle_en_travers' | 'obstacle_degage'; readonly objet: RefObjet; readonly passage: RefPassage }
+  /** Le drone vu qui se met à rouler, part, arrive ou s'arrête devant une porte fermée (PR #300). */
+  | { readonly type: 'drone_roule' | 'drone_part' | 'drone_arrive' | 'drone_bloque'; readonly objet: RefObjet; readonly passage: RefPassage }
+  /** Son moteur entendu derrière une porte ouverte (PR #300). */
+  | { readonly type: 'drone_entendu'; readonly passage: RefPassage }
+  /** La créature, qu'on entend, suit le grondement du drone (PR #300). */
+  | { readonly type: 'creature_attiree'; readonly objet: RefObjet }
   | { readonly type: 'reveil'; readonly piece: RefPiece }
   | { readonly type: 'objet_pris'; readonly objet: RefObjet; readonly piece: RefPiece }
   | { readonly type: 'objet_pose'; readonly objet: RefObjet; readonly piece: RefPiece }

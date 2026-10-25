@@ -9,6 +9,12 @@ export const EVENEMENTS_DRONE = {
   drone_bruit_arrete: ['Derrière {le:passage}, un choc métallique retentit. Le moteur se tait.'],
   passage_ouvert_encombre: ['Vous ouvrez {le:passage}. Un obstacle matériel barre encore le passage.'],
   obstacle_en_travers: ['{Le:objet} barre {le:passage} : impossible de passer.'],
+  drone_roule: ['{Le:objet} se met à rouler vers {le:passage}, moteur grondant.'],
+  drone_part: ['{Le:objet} s’éloigne par {le:passage} ; son moteur gronde.'],
+  drone_arrive: ['{Le:objet} arrive par {le:passage}, moteur grondant.'],
+  drone_bloque: ['{Le:objet} s’arrête devant {le:passage}, fermé{e:passage}, et coupe son moteur.'],
+  drone_entendu: ['Derrière {le:passage}, le moteur du drone gronde.', 'Le grondement du drone vous parvient par {le:passage}.'],
+  creature_attiree: ['Le grondement {de:objet} a attiré quelque chose.'],
   obstacle_degage: ['{Le:objet} est rangé{e:objet} sur le côté : {le:passage} est dégagé{e:passage}.'],
 } as const;
 export const REFUS_DRONE = {
