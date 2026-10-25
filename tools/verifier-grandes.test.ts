@@ -8,7 +8,6 @@ import {
   lireTemoins,
   publierGrandes,
   rejouerTemoin,
-  reparerTemoin,
   sansButin,
   sansErrance,
   temoinValable,
@@ -17,13 +16,12 @@ import {
   verifierPublieesDuLot,
   type LigneGrande,
   type PasTemoin,
-  type Preuve,
 } from './verifier-grandes';
 import { trouverOption } from './rejouer-parcours';
 import { rangsDesSegments } from './verifier-station';
+import { transposerTemoins } from './temoins-portables';
 
-// Preuve des grandes stations (spec 2026-10-18 §7, D-326) : contrôles, puis témoin du chemin principal rejoué dans la grande
-// station privée de son butin, tel quel ou réparé, ou recherche directe ; en ordre libre, les deux ordres.
+// Contrôles et parcours construits puis rejoués sans dé ni blessure ; un certificat par ordre de préparation.
 
 // Les contrôles de grande station, neutralisés le temps d'un test qui sert au rejeu un monde qu'ils refuseraient.
 const controles = vi.hoisted(() => ({ neutres: false }));
@@ -136,38 +134,42 @@ describe('preuve des grandes stations (spec 2026-10-18 §7.4)', () => {
     expect(ligne.verdict).toBe('prouvee');
   }, 120_000);
 
-  it('ordre libre : le témoin du chemin principal suffit, sans recherche directe ; le troisième chemin guide la recherche (#237)', () => {
-    const ligne = verifierGrande(CATALOGUE, LIBRE, { maxEtats: 40_000 }, false);
-    expect(ligne.verdict, JSON.stringify({ ...ligne, temoins: null })).toBe('prouvee');
-    expect(['temoin', 'repare']).toContain(ligne.methode);
-  }, 120_000);
 
   it('publierGrandes garde une station publiée dont les témoins se rejouent, sans la reprouver ; un témoin cassé est reprouvé (#237)', () => {
     const temoins = prouvee(STATION).temoins ?? [];
     const journal: LigneGrande[] = [];
-    const gardee = publierGrandes(CATALOGUE, 1, 4, {}, (ligne) => journal.push(ligne), [CHAINE], { [STATION]: temoins });
+    const gardee = publierGrandes(CATALOGUE, 1, 4, (ligne) => journal.push(ligne), [CHAINE], { [STATION]: temoins });
     expect(gardee.publiees).toEqual([STATION]);
     expect(journal.map((ligne) => ligne.methode)).toEqual(['publie']);
     journal.length = 0;
-    const reprouvee = publierGrandes(CATALOGUE, 1, 4, {}, (ligne) => journal.push(ligne), [CHAINE], { [STATION]: temoins.map((pas) => pas.slice(0, -1)) });
+    const reprouvee = publierGrandes(CATALOGUE, 1, 4, (ligne) => journal.push(ligne), [CHAINE], { [STATION]: temoins.map((pas) => pas.slice(0, -1)) });
     expect(journal[0]).toMatchObject({ station: STATION, methode: 'publie', verdict: 'non_prouvee' });
     expect(reprouvee.publiees).toHaveLength(1);
     expect(journal.slice(1).every((ligne) => ligne.methode !== 'publie')).toBe(true);
   }, 120_000);
 
-  it('la preuve par le témoin du chemin principal est lue dans la mémoire de la première passe, sans être refaite (#237)', () => {
-    const memoire = new Map<string, Preuve>([[STATION, { verdict: 'non_prouvee', etats: 0, actions: null, methode: null, temoin: null }]]);
-    expect(verifierGrande(CATALOGUE, STATION, {}, false, memoire)).toMatchObject({ verdict: 'non_prouvee', methode: null, etats: 0 });
+  it('rejoue un certificat de version précédente sur la station actuelle, sans garder ses anciens identifiants', () => {
+    const entree = construite(STATION);
+    const ancienne = STATION.replace(/^g\d+-/, `g${VERSION_GENERATEUR - 1}-`);
+    const source = { ...entree, monde: { ...entree.monde, id: ancienne } };
+    const temoins = transposerTemoins(entree, source, prouvee(STATION).temoins ?? []);
+    if (temoins === null) throw new Error('Certificat de référence non transposable.');
+    const journal: LigneGrande[] = [];
+    const publication = publierGrandes(CATALOGUE, 1, 4, (ligne) => journal.push(ligne), [CHAINE], { [ancienne]: temoins });
+    expect(publication.publiees).toEqual([STATION]);
+    expect(journal.map((ligne) => ligne.methode)).toEqual(['publie']);
+    expect(verifierPubliee(CATALOGUE, STATION, publication.temoins[STATION]).verdict).toBe('prouvee');
   });
+
 
   it('une composition sans station connue n’est pas recherchée tant que son empreinte ne change pas (#237)', () => {
     const journal: LigneGrande[] = [];
     const marque = { empreinte: empreinteComposition(CATALOGUE, CHAINE, 'moteur'), essais: 4 };
-    const passee = publierGrandes(CATALOGUE, 1, 4, {}, (ligne) => journal.push(ligne), [CHAINE], {}, { [CHAINE]: marque }, 'moteur');
+    const passee = publierGrandes(CATALOGUE, 1, 4, (ligne) => journal.push(ligne), [CHAINE], {}, { [CHAINE]: marque }, 'moteur');
     expect(passee).toMatchObject({ publiees: [], sansStation: { [CHAINE]: marque } });
     expect(journal).toEqual([]);
     expect(empreinteComposition(CATALOGUE, CHAINE, 'autre moteur')).not.toBe(marque.empreinte);
-    const recherchee = publierGrandes(CATALOGUE, 1, 4, {}, (ligne) => journal.push(ligne), [CHAINE], {}, { [CHAINE]: { ...marque, essais: 3 } }, 'moteur');
+    const recherchee = publierGrandes(CATALOGUE, 1, 4, (ligne) => journal.push(ligne), [CHAINE], {}, { [CHAINE]: { ...marque, essais: 3 } }, 'moteur');
     expect(recherchee.publiees).toHaveLength(1);
     expect(recherchee.sansStation).toEqual({});
   }, 120_000);
@@ -253,10 +255,9 @@ describe('preuve des grandes stations (spec 2026-10-18 §7.4)', () => {
     expect(rejouerTemoin(entree, temoin)).not.toBeNull();
   }, 120_000);
 
-  it('une grande station dont la caisse a quitté son morceau est prouvée par témoin réparé, sans dé ni blessure', () => {
+  it('une grande station dont la caisse a quitté son morceau garde un parcours sûr, sans dé ni blessure', () => {
     const ligne = prouvee(CAISSE);
     expect(ligne.verdict, JSON.stringify(ligne.ecarts)).toBe('prouvee');
-    expect(ligne.methode).toBe('repare');
     const [temoin] = ligne.temoins ?? [];
     if (temoin === undefined) throw new Error('Témoin absent.');
     expect(rejouerTemoin(sansButin(construite(CAISSE)), temoin)).not.toBeNull();
@@ -271,15 +272,6 @@ describe('preuve des grandes stations (spec 2026-10-18 §7.4)', () => {
     expect(rejouerTemoin(entree, temoin)).not.toBeNull();
   }, 300_000);
 
-  it('témoin réparé : un détour sans danger est inséré ; un détour qui exigerait un dé est refusé (une seule voie, sous les yeux de la créature)', () => {
-    expect(reparerTemoin(petite('a'), TEMOIN_PETITE)).toEqual(TEMOIN_PETITE);
-    expect(reparerTemoin(petite('a', 'antre'), TEMOIN_PETITE)).toEqual(TEMOIN_PETITE);
-    const repare = reparerTemoin(petite('reduit'), TEMOIN_PETITE);
-    if (repare === null) throw new Error('Détour vers le réduit non trouvé.');
-    expect(repare.length).toBeGreaterThan(TEMOIN_PETITE.length);
-    expect(temoinValable(petite('reduit'), repare)).toBe(true);
-    expect(reparerTemoin(petite('reduit', 'antre'), TEMOIN_PETITE)).toBeNull();
-  });
 
   it('ordre libre : deux témoins du même ordre ne suffisent pas (G-07)', () => {
     const ligne = verifierGrande(CATALOGUE, LIBRE);
