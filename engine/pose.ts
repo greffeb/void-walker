@@ -243,8 +243,7 @@ export function rechercherPose(
     const depuis = lien === undefined ? undefined : posees.find((piece) => piece.id === lien.depuis)?.rect;
     // Première tuile : sans translation, seul son miroir est tiré.
     const placements = rang === 0 ? MIROIRS.map((miroir) => ({ miroir, dx: 0, dy: 0 })) : depuis === undefined ? [] : accroches(depuis, tuile.entree.rect);
-    const sansMiroir = morceaux[rang]?.sansMiroir ?? [];
-    const candidats = melanger(placements.filter((placement) => placement.miroir === 'aucun' || !sansMiroir.includes(placement.miroir)))
+    const candidats = melanger(placements)
       .map((placement) => {
         const pieces = tuile.pieces.map((piece) => ({ ...piece, rect: placer(piece.rect, placement) }));
         return { placement, pieces, ecart: ecart([...posees, ...pieces].map((piece) => piece.rect)) };
