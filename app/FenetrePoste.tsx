@@ -42,14 +42,31 @@ export function journalPoste(
 /** Un pas d'attente toutes les deux secondes, au rythme du « ● DIRECT », tant que la fenêtre est ouverte (D-359). */
 export const PAS_POSTE_MS = 2000;
 
+/** Ce que l'horloge lit de la page : `document`, ou une page simulée dans les tests. */
+export interface PageVisible {
+  readonly hidden: boolean;
+  addEventListener(type: 'visibilitychange', ecouteur: () => void): void;
+  removeEventListener(type: 'visibilitychange', ecouteur: () => void): void;
+}
+
 /**
  * Horloge du poste : arme un seul pas différé si `actif`, et rend de quoi l'annuler. Appelée par un effet qui se rejoue à chaque
  * pas : jamais deux minuteurs, rien pendant qu'un pas s'applique (`actif` faux), rien après la fermeture ou le démontage.
+ * Page cachée (écran verrouillé, autre appli) : aucun pas ; revenue, le pas repart de deux secondes.
  */
-export function armerPoste(actif: boolean, jouer: () => void): () => void {
+export function armerPoste(actif: boolean, jouer: () => void, page: PageVisible): () => void {
   if (!actif) return () => undefined;
-  const minuteur = setTimeout(jouer, PAS_POSTE_MS);
-  return () => clearTimeout(minuteur);
+  let minuteur: ReturnType<typeof setTimeout> | undefined;
+  const armer = (): void => {
+    clearTimeout(minuteur);
+    minuteur = page.hidden ? undefined : setTimeout(jouer, PAS_POSTE_MS);
+  };
+  page.addEventListener('visibilitychange', armer);
+  armer();
+  return () => {
+    clearTimeout(minuteur);
+    page.removeEventListener('visibilitychange', armer);
+  };
 }
 
 const rien = (): void => undefined;

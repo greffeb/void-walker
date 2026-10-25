@@ -932,7 +932,8 @@ const boucler: ActionEngagee = {
   prevoir: ({ monde }, cible) => ({ ...SANS_DANGER, savoir: [{ type: 'bouclera', piece: refPiece(monde, exiger(objet(monde, cible).fermeture, 'Chambre absente.')) }] }),
   appliquer: ({ monde, etat }, cible) => {
     const chambre = exiger(objet(monde, cible).fermeture, 'Chambre absente.');
-    const fermees = Object.fromEntries(portesDe(monde, chambre).map((liaison) => [liaison.id, false]));
+    // Une porte enfoncée ne ferme plus, pupitre compris (D-279).
+    const fermees = Object.fromEntries(portesDe(monde, chambre).filter((liaison) => !enfoncee(etat, liaison.id)).map((liaison) => [liaison.id, false]));
     return {
       etat: { ...etat, liaisons: { ...etat.liaisons, ...fermees } },
       evenements: [{ type: 'chambre_bouclee', objet: refObjet(monde, cible), piece: refPiece(monde, chambre) }],

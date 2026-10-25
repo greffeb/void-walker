@@ -279,11 +279,12 @@ export function EcranJeu({
   }, [posteAffiche, ouverte]);
   // Horloge du poste (D-359) : un pas d'attente deux secondes après le précédent, jamais pendant qu'un pas s'applique (`occupe`) ;
   // quatre secondes sous une alerte rouge. Un pas qui échoue arrête l'horloge pour ce pas-là : l'erreur suit le chemin d'un pas joué à la main.
+  // Arrêtée aussi pendant l'information « plus aucune sortie », et tant que la page est cachée (armerPoste).
   const pasEchoue = useRef<Jeu | null>(null);
   useEffect(() => {
     const attente = observer(env.monde, jeu.partie.etat).menu.find((option) => option.action === 'attendre' && option.disponible);
     return armerPoste(
-      posteAffiche && !occupe && attente !== undefined && pasEchoue.current !== jeu,
+      posteAffiche && !information && !occupe && attente !== undefined && pasEchoue.current !== jeu,
       () => {
         if (attente === undefined) return;
         choisir(jeu, attente).catch((erreur: unknown) => {
@@ -291,8 +292,9 @@ export function EcranJeu({
           throw erreur;
         });
       },
+      document,
     );
-  }, [posteAffiche, occupe, jeu, env.monde, choisir]);
+  }, [posteAffiche, information, occupe, jeu, env.monde, choisir]);
   /** Après CONTINUER À JOUER, le focus revient au récit, sous le rappel (12 §7). */
   const rendreAuRecit = useRef(false);
   useEffect(() => {
