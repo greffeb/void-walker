@@ -590,7 +590,8 @@ describe('lots et verdicts gardés de check:stations (#180)', () => {
   });
 
   it('cache : la seconde vérification reprend chaque verdict sans recherche, avec le même résultat ; d’autres options ou d’autres morceaux changent la clé', () => {
-    const lot: Lot = { numero: 5, total: 60 };
+    // Lot léger (~40 s) : le 5/60 approchait les 300 s depuis M-12 prouvé place par place (#270) et dépassait en CI chargée.
+    const lot: Lot = { numero: 2, total: 60 };
     const cache = cacheMemoire();
     const premier = verifierLot(lot, { tirages: 2, cache });
     expect(premier.repris).toBe(0);
@@ -606,5 +607,5 @@ describe('lots et verdicts gardés de check:stations (#180)', () => {
     for (const composition of dansLeLot(CATALOGUE.compositions, lot)) {
       expect(cache.cles.some((cle) => cle.startsWith(`composition ${composition.id} `) && cle.includes(JSON.stringify(empreintesDe(composition))))).toBe(true);
     }
-  }, 300000); // M-12 prouvé place par place (#270) : le lot 5/60 en a plusieurs.
+  }, 300000);
 });

@@ -46,8 +46,9 @@ export function liensDeTest(ids: readonly string[], adresse: string, catalogue: 
   if (ids.length === 0) return [];
   const lignes = ids.map((id) => {
     if (Object.hasOwn(catalogue.mondes, id)) return `- [${id}](${adresse}?monde=${id})`;
-    const composition = catalogue.compositions.some((candidate) => candidate.id === id);
-    const obtenu = composition ? catalogue.tirer(hasardFixe(), id) : catalogue.resoudre(id);
+    const grande = catalogue.grandes.some((candidate) => candidate.id === id);
+    const composition = grande || catalogue.compositions.some((candidate) => candidate.id === id);
+    const obtenu = grande ? catalogue.tirerGrande(hasardFixe(), id) : composition ? catalogue.tirer(hasardFixe(), id) : catalogue.resoudre(id);
     if ('refus' in obtenu) return `- \`${id}\` : refusé par le jeu (${obtenu.refus})`;
     return `- [${id}](${adresse}?station=${id})${composition ? ', un plan tiré à chaque nouvelle partie' : ''}`;
   });

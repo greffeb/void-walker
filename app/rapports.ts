@@ -22,8 +22,7 @@ export interface Rapport {
   readonly partie: ExportPartie | null;
   /** Texte affiché au moment du rapport (RP-01). */
   readonly ecran: readonly string[];
-  /** « Je valide » signé par le téléphone (C-10 §4) ; 
-ull pour un simple retour. */
+  /** « Je valide » signé par le téléphone (C-10 §4) ; `null` pour un simple retour. */
   readonly validation: Validation | null;
   /** Secondes d'écran allumé de la partie jointe (#204) ; `null` si elle n'a pas été mesurée depuis son début. */
   readonly duree: number | null;

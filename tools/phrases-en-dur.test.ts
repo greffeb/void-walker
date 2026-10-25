@@ -13,6 +13,7 @@ describe('phrases en dur de l’interface (#239)', () => {
         <section aria-label="Parole d'IA Station" className="parole ia">
           <p>Continuer</p>
           <Rail libelle="Ambiance" coupe="coupée" />
+          <Bouton texte="Fermer l'écoutille" etiquette="Reprendre la partie" variante="plein" />
         </section>
       );`;
     expect(textes('app/Vue.tsx', source)).toEqual([
@@ -23,6 +24,8 @@ describe('phrases en dur de l’interface (#239)', () => {
       'Continuer',
       'Ambiance',
       'coupée',
+      "Fermer l'écoutille",
+      'Reprendre la partie',
     ]);
   });
 
