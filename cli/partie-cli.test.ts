@@ -258,6 +258,16 @@ describe('CLI', () => {
     expect(choisirEntree(['voir', '--monde'], CATALOGUE, ctx.es)).toMatch(/--monde <id>/);
   });
 
+  it('une option inconnue est refusée sans rien jouer ni enregistrer (#281)', () => {
+    const ctx = contexte();
+    executer(['nouvelle'], ctx);
+    const avant = new Map(ctx.fichiers);
+    expect(choisirEntree(['--partei', 'essai.json', 'jouer', '2'], CATALOGUE, ctx.es)).toMatch(/^Option inconnue : --partei\./);
+    expect(executer(['--partei', 'essai.json', 'jouer', '2'], ctx)).toMatchObject({ code: 1, lignes: [expect.stringMatching(/^Option inconnue : --partei\./)] });
+    expect(executer(['--partie=x.json', 'voir'], ctx)).toMatchObject({ code: 1, lignes: [expect.stringMatching(/^Option inconnue : --partie=x\.json\./)] });
+    expect(ctx.fichiers).toEqual(avant);
+  });
+
   it('une partie enregistrée sur AR-01 reprend sur AR-01 ; --monde ar-01 donne AR-01', () => {
     const ctx = contexte(new Map(), false, AR01);
     expect(choisirEntree(['nouvelle', '--monde', 'ar-01'], CATALOGUE, ctx.es)).toBe(AR01);
