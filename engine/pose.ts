@@ -23,6 +23,8 @@ export interface Pose {
   readonly rects: ReadonlyMap<string, RectPlan>;
   /** `rang` de chaque porte entre morceaux, par identifiant de liaison. */
   readonly portes: ReadonlyMap<string, number>;
+  /** Retournement de la tuile de chaque pièce, par identifiant de pièce préfixé. */
+  readonly miroirs: ReadonlyMap<string, Miroir>;
 }
 
 export function prefixer(morceau: string, id: string): string {
@@ -53,7 +55,7 @@ const MUR_MIN = 2;
 export const BUDGET_POSE = 2000;
 
 /** Retournement d'une tuile : jamais sur les deux axes, ce serait un demi-tour (GE-02). */
-type Miroir = 'aucun' | 'x' | 'y';
+export type Miroir = 'aucun' | 'x' | 'y';
 const MIROIRS: readonly Miroir[] = ['aucun', 'x', 'y'];
 
 export interface Placement {
@@ -66,6 +68,7 @@ interface PieceTuile {
   readonly id: string;
   readonly rect: RectPlan;
   readonly coque: boolean;
+  readonly miroir?: Miroir;
 }
 
 interface Tuile {
@@ -238,14 +241,18 @@ export function rechercherPose(
   const chercher = (indice: number, posees: readonly PieceTuile[], reservees: ReadonlySet<string>, portes: ReadonlyMap<string, number>): Pose | null => {
     const rang = ordre[indice];
     const tuile = rang === undefined ? undefined : tuiles[rang];
-    if (rang === undefined || tuile === undefined) return { rects: new Map(posees.map((piece) => [piece.id, piece.rect])), portes };
+    if (rang === undefined || tuile === undefined) return {
+        rects: new Map(posees.map((piece) => [piece.id, piece.rect])),
+        portes,
+        miroirs: new Map(posees.map((piece) => [piece.id, piece.miroir ?? 'aucun'])),
+      };
     const lien = lienVers.get(rang);
     const depuis = lien === undefined ? undefined : posees.find((piece) => piece.id === lien.depuis)?.rect;
     // Première tuile : sans translation, seul son miroir est tiré.
     const placements = rang === 0 ? MIROIRS.map((miroir) => ({ miroir, dx: 0, dy: 0 })) : depuis === undefined ? [] : accroches(depuis, tuile.entree.rect);
     const candidats = melanger(placements)
       .map((placement) => {
-        const pieces = tuile.pieces.map((piece) => ({ ...piece, rect: placer(piece.rect, placement) }));
+        const pieces = tuile.pieces.map((piece) => ({ ...piece, rect: placer(piece.rect, placement), miroir: placement.miroir }));
         return { placement, pieces, ecart: ecart([...posees, ...pieces].map((piece) => piece.rect)) };
       })
       .sort((a, b) => a.ecart - b.ecart);

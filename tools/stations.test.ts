@@ -1035,9 +1035,9 @@ describe('résolution d’un identifiant', () => {
   it('vigilance 1 (spec L4 §4) : les 88 stations de L3 sont reconstruites à l’identique à la graine 2718281828', () => {
     const monde = (composition: string): DefMonde => entreeDe(catalogue.resoudre(`${composition}-2718281828`)).monde;
     const mondes = PUBLIEES_L3.map(monde);
-    expect(empreinte(Object.fromEntries(mondes.map((station) => [station.id, empreinte(station)])))).toBe('0cd581b911ddba');
+    expect(empreinte(Object.fromEntries(mondes.map((station) => [station.id, empreinte(station)])))).toBe('01bb7d2397cc2d');
     expect(['m08-m09-m06-embarquement', 'm10-m09-m03-entrepot', 'm07-m10-m06-soute'].map((id) => empreinte(monde(id)))).toEqual([
-      '0b01d3ed5cc2ff',
+      '1bf70d1f0c6cbc',
       '00650eb3d7f7ae',
       '00a41aaab24725',
     ]);

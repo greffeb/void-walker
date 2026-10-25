@@ -38,12 +38,15 @@ export const MORCEAU_M09: DefMorceau = {
   fournit: ['acces'],
   // Grandes stations (spec 2026-10-18 §6.1, §6.3) : pièces où une annexe peut s’accrocher, côté avant et coupe de l’obstacle.
   grande: { obstacle: 'materiel', accueillantes: { 'p-quartiers': 'vie', 'p-cale': 'fret' }, avant: ['p-quartiers', 'p-sas-ouest'], coupe: ['l-sas-ouest-transfert'] },
+  // La tuile retournée de gauche à droite, les sas échangent leurs noms : bâbord reste à gauche sur la carte (#296).
+  nomsRetournes: { 'p-sas-ouest': { axe: 'x', nom: 'sas_est' }, 'p-sas-est': { axe: 'x', nom: 'sas_ouest' } },
   assistance: [{ id: 'gravite', quand: { type: 'arrivee', piece: 'p-sas-ouest' } }],
 };
 
 // Textes du morceau (C-07) : descriptions des sas, interrupteur et message d'arrivée repris de la station de test M-09,
 // l'interrupteur sous une clé distincte de celui des machines. Les sas sont nommés bâbord et tribord : « sas est » donnait
-// « est est ouverte ». La coursive de transfert et la cale sont écrites pour ce morceau ; la description de la coursive tait
+// « est est ouverte ». Bâbord reste à gauche sur la carte, tribord à droite (#296) ; leurs descriptions sont les mêmes. La
+// coursive de transfert et la cale sont écrites pour ce morceau ; la description de la coursive tait
 // sa gravité, qui change en cours de partie, et l'observation la dit. Texte final non validé.
 export const TEXTES_MORCEAU_M09: TextesMorceau = {
   noms: {
