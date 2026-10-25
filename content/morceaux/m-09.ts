@@ -31,6 +31,7 @@ export const MORCEAU_M09: DefMorceau = {
     { id: 'o-interrupteur-ouest', nom: 'interrupteur_gravite', piece: 'p-sas-ouest', portable: false, gravite: 'p-transfert' },
     { id: 'o-interrupteur-est', nom: 'interrupteur_gravite', piece: 'p-sas-est', portable: false, gravite: 'p-transfert' },
   ],
+  sansMiroir: ['x'],
   entree: 'p-quartiers',
   sortie: { piece: 'p-sas-est', porte: { nom: 'porte' } },
   placesCreature: ['p-cale'],

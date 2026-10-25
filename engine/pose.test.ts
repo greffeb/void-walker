@@ -321,3 +321,21 @@ describe('recherche bornée (14 §5.6)', () => {
     }
   });
 });
+
+describe('tuiles jamais retournées sur un axe (bâbord, tribord ; nord, sud)', () => {
+  it.each(['x', 'y'] as const)('sansMiroir %s : sur 200 graines, l’ordre des pièces sur cet axe reste celui du dessin', (axe) => {
+    for (const morceau of [DEPART, CHEMIN, FINAL]) {
+      const fige = { ...morceau, sansMiroir: [axe] };
+      const chaine = [DEPART, CHEMIN, FINAL].map((m) => (m === morceau ? fige : m));
+      const [a, b] = fige.pieces
+        .flatMap((p) => fige.pieces.map((q) => [p, q] as const))
+        .find(([p, q]) => p.plan !== undefined && q.plan !== undefined && p.plan[axe] < q.plan[axe]) ?? [];
+      if (a === undefined || b === undefined) continue;
+      for (const graine of GRAINES) {
+        const pose = poserTuiles(chaine, graine);
+        if (pose === null) continue;
+        expect(rect(pose, fige.id, a.id)[axe], `${fige.id}, graine ${graine}`).toBeLessThan(rect(pose, fige.id, b.id)[axe]);
+      }
+    }
+  });
+});

@@ -27,6 +27,7 @@ export const MORCEAU_M08: DefMorceau = {
     { id: 'l-est-magasin', nom: 'porte', entre: ['p-est', 'p-magasin'], ouverte: false },
   ],
   objets: [{ id: 'o-planche', nom: 'planche', piece: 'p-atelier', pont: true, encombrant: true }],
+  sansMiroir: ['y'],
   entree: 'p-quartiers',
   sortie: { piece: 'p-est', porte: { nom: 'porte' } },
   placesCreature: ['p-magasin'],

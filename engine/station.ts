@@ -70,6 +70,11 @@ export interface DefMorceau {
   /** Pour la famille `annexe` seulement. */
   readonly annexe?: DefAnnexe;
   readonly grande?: DefGrandeMorceau;
+  /**
+   * Axes sur lesquels la tuile ne se retourne jamais : `x` garde la gauche à gauche (bâbord, tribord), `y` garde le haut en
+   * haut (nord, sud).
+   */
+  readonly sansMiroir?: readonly ('x' | 'y')[];
 }
 
 /** Porte qui accroche un morceau, par son entrée, à une pièce d'un morceau placé avant lui (ordre libre, D-259). */
