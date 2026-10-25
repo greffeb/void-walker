@@ -1,7 +1,7 @@
 # Void Walker V2 — journal des décisions
 
 > **Statut :** JOURNAL ACTIF — seules les entrées « Validé » font autorité.
-> **Mise à jour :** 2026-10-24 (écoute : rappel des portes inchangées, silences groupés, #261, #262 et #266, D-362 à D-365) ; 2026-10-24 (créature en poursuite dans la pièce voisine : toujours du bruit, D-361, #258) ; 2026-10-23 (créature mobile, lot 4 : salle de surveillance, carte révélée, caméras et messages d'IA Station, D-356 à D-360) ; 2026-10-23 (carte : portes en barre et taquets, D-355) ; 2026-10-23 (créature mobile, lot 3 : le capteur, D-350 à D-354) ; 2026-10-22 (créature mobile, lot 2 : écoute en attendant, D-343 à D-347) ; 2026-10-21 (créature mobile : conception approuvée, D-330 à D-342, D-048 remplacée dans les grandes stations) ; 2026-10-21 (M-11 et M-12 tirés dans les grandes stations, D-329, #236) ; 2026-10-20 (intro de NOUVELLE PARTIE, #200 ; grandes stations habitées, livraisons 2 et 3 : clés dispersées et butin, lore et documents ; D-328, demande du porteur sur « Poser » ; décisions des grandes stations renumérotées D-313 à D-328 à la reprise de `main`).
+> **Mise à jour :** 2026-10-25 (M-12 refondu : chariot trop lourd, drone à retrouver, #270 et #271, D-366 à D-369) ; 2026-10-24 (écoute : rappel des portes inchangées, silences groupés, #261, #262 et #266, D-362 à D-365) ; 2026-10-24 (créature en poursuite dans la pièce voisine : toujours du bruit, D-361, #258) ; 2026-10-23 (créature mobile, lot 4 : salle de surveillance, carte révélée, caméras et messages d'IA Station, D-356 à D-360) ; 2026-10-23 (carte : portes en barre et taquets, D-355) ; 2026-10-23 (créature mobile, lot 3 : le capteur, D-350 à D-354) ; 2026-10-22 (créature mobile, lot 2 : écoute en attendant, D-343 à D-347) ; 2026-10-21 (créature mobile : conception approuvée, D-330 à D-342, D-048 remplacée dans les grandes stations) ; 2026-10-21 (M-11 et M-12 tirés dans les grandes stations, D-329, #236) ; 2026-10-20 (intro de NOUVELLE PARTIE, #200 ; grandes stations habitées, livraisons 2 et 3 : clés dispersées et butin, lore et documents ; D-328, demande du porteur sur « Poser » ; décisions des grandes stations renumérotées D-313 à D-328 à la reprise de `main`).
 
 ## Règles
 
@@ -26,13 +26,13 @@ Cet index sert à trouver les décisions liées à une tâche ; il ne remplace p
 | Sauvegarde, export et rapports | [D-088 à D-103](#d-088--nouveaux-tirages-en-rejouant-une-station), [D-200](#d-200--abandonner-efface-la-partie-de-lappareil), [D-231 à D-232](#d-231--le-rapport-sécrit-dans-un-panneau-ouvert-sous-sa-ligne-des-options), [D-280](#d-280--durée-dune-partie--le-temps-décran-allumé-du-réveil-à-la-fin) |
 | Gouvernance, agents et architecture | [D-104 à D-108](#d-104--tests-et-documentation-restent-en-zone-verte), [D-122 à D-139](#d-122--la-v2-se-développe-dans-le-dépôt-existant), [D-199](#d-199--lorchestration-des-issues-reste-dans-la-conversation-principale), [D-227](#d-227--mise-à-jour-de-lappli-installée--numéro-de-construction), [D-271 à D-272](#d-271--vérification-au-plus-court-mêmes-preuves) |
 | Textes du jeu | [D-109 à D-117](#d-109--français-seulement-au-lancement), [D-243](#d-243--un-lore-léger-au-lancement-écrit-avec-soin-par-lassistant-principal) |
-| Chariot et drone M-12 | [D-304 à D-307](#d-304--m-12-repose-sur-une-coopération-nécessaire) |
+| Chariot et drone M-12 | [D-304 à D-307](#d-304--m-12-repose-sur-une-coopération-nécessaire), [D-366 à D-369](#d-366--le-chariot-trop-lourd-ne-se-déplace-quavec-le-drone) |
 | Interface et interactions d'écran | [D-140 à D-155](#d-140--maquette-dinterface-v1-et-direction--phosphore-), [D-176](#d-176--une-couleur-par-menu--cyan-pour-linventaire), [D-182](#d-182--une-seule-touche-quand-rien-nest-à-craindre-sauf-pour-les-portes), [D-277](#d-277--entrer-dans-une-pièce-jamais-vue-la-regarde-aussitôt), [D-186 à D-187](#d-186--le-nouveau-texte-sécrit-à-la-machine-puis-un-curseur-clignote), [D-191 à D-192](#d-191--écran-plus-compact-boutons-toujours-visibles-six-lignes-de-récit-au-moins), [D-197 à D-198](#d-197--nouveaux-noms-de-pièces-dans-ar-01-et-ar-02), [D-229 à D-230](#d-229--les-portes-se-manœuvrent-depuis--se-déplacer-vers-), [D-233](#d-233--le-danger-apparu-sannonce-en-rouge-triangle-clignotant-avec-son-alarme), [D-263](#d-263--ia-station-sannonce-sur-son-bouton-plus-dans-le-récit), [D-287 à D-288](#d-287--les-options-en-trois-sous-menus--son-et-texte-rapports-application), [D-308 à D-312](#d-308--après-nouvelle-partie-une-intro-montre-que-la-station-est-tirée-au-hasard), [D-328](#d-328--poser-la-caisse-sous-la-grille-dun-seul-geste), [D-349](#d-349--flèche-orientée-devant-chaque-destination) |
 | Créature, blessures et dangers | [D-177 à D-181](#d-177--la-créature-suit-le-passage-quelle-vous-a-vu-prendre), [D-183 à D-190](#d-183--rester-sous-ses-yeux-se-joue-au-même-dé-que-la-fuite), [D-276](#d-276--alertée-la-créature-poursuit-écoute-et-fouille), [D-278](#d-278--le-jet-dinterception-touche-toujours-v1-de-194), [D-279](#d-279--alertée-la-créature-force-une-porte-fermée-sur-sa-piste-v2-de-194), [D-330 à D-342](#d-330--la-créature-a-un-territoire--les-pièces-reliées-par-des-passages-ouverts), [D-343 à D-347](#d-343--attendre-écoute-à-toutes-les-portes-pas-de-bouton-écouter), [D-362 à D-365](#d-362--chaque-attente-dit-quelque-chose-des-portes), [D-350 à D-354](#d-350--le-capteur--au-plus-un-par-station-posé-pour-de-bon-par-poser), [D-356 à D-360](#d-356--la-salle-de-surveillance--à-part-dans-un-cinquième-des-grandes-stations-un-terminal-à-mot-de-passe-sur-post-it), [D-361](#d-361--en-poursuite-sur-vos-talons-dans-la-pièce-voisine-elle-fait-toujours-du-bruit) |
 | Carte et géométrie des stations | [D-201 à D-215](#d-201--la-carte-est-un-plan-de-pont), [D-273](#d-273--sur-le-plan-le-passager-est-un-point-à-ondes-radar-la-créature-un-œil-rouge) |
 | Son | [D-216 à D-226](#d-216--bruitages-synthétisés-pour-le-projet) |
 
-Statuts particuliers à ne pas manquer : D-011 et D-012 sont des propositions (D-012 n'a pas été retenue) ; D-097, D-152 et D-193 sont remplacées ; D-048 l'est par D-334 dans les mondes à `rencontre` seulement ; le volume de D-118 est remplacé par D-157. Les précisions partielles apportées à d'autres décisions sont indiquées dans leur entrée.
+Statuts particuliers à ne pas manquer : D-011 et D-012 sont des propositions (D-012 n'a pas été retenue) ; D-097, D-152, D-193 et D-304 sont remplacées ; D-048 l'est par D-334 dans les mondes à `rencontre` seulement ; le volume de D-118 est remplacé par D-157. Les précisions partielles apportées à d'autres décisions sont indiquées dans leur entrée.
 
 ## Décisions validées
 
@@ -2400,7 +2400,7 @@ Les numéros D-304 à D-307 évitent les entrées préparées dans les chantiers
 
 ### D-304 — M-12 repose sur une coopération nécessaire
 
-- Date / statut : 2026-10-20 / **Validé comme conception à intégrer et tester**.
+- Date / statut : 2026-10-20 / **Remplacé par D-366** (2026-10-24) ; était validé comme conception à intégrer et tester.
 - Origine : choix du porteur « Coopération nécessaire dans cette situation », puis « on va la tester comme ça, intègre ce morceau M-12 (un M-11) est en cours dans un worktree. travaille aussi dans un worktree. »
 - Décision : un chariot bloque le chemin vers la suite de la station. Le passager doit le pousser au palier pendant qu'une poignée reste maintenue au poste. Il peut tenir lui-même cette poignée, mais la relâche en quittant le poste ; il ne peut donc accomplir seul les deux gestes. Un drone de manutention effectue le maintien à sa place. Le déplacement du chariot est durable ; la tâche du drone est alors terminée.
 - Complète : D-156, D-157 et D-172. M-12 est un morceau de chemin, pas un deuxième problème final. Son intérêt recherché est la variété des situations, pas un nombre de minutes ajouté.
@@ -3094,3 +3094,44 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 - Origine : [#262](https://github.com/greffeb/void-walker/issues/262) : mêler l'écoute à Regarder, renommé « Observer ».
 - Décision : non. Regarder reste gratuit et n'écoute pas, ATTENDRE écoute et garde son nom ; le rappel de D-362 suffit à montrer qu'on écoute.
 - Confirme : D-343.
+
+## Décisions validées — M-12 refondu : chariot trop lourd et drone à retrouver (#270, #271)
+
+Conversation du 2026-10-24 avec le porteur, sur deux rapports de partie : « On peut envoyer le drone tenir la poignée sans savoir ce que c'est ni ce que ça fait » (#270) et « Lorsqu'on bouge le chariot, rien ne nous dit que ça permet d'accéder à la nouvelle pièce » (#271). Conception approuvée : « J'approuve le document de conception de M-12 » ([conception](superpowers/specs/2026-10-24-drone-m12-design.md), réponses mot pour mot en annexe A). Implémenté par la PR de #270, zone orange ; aucune partie sur téléphone n'est revendiquée.
+
+### D-366 — Le chariot trop lourd ne se déplace qu'avec le drone
+
+- Date / statut : 2026-10-24 / **Validé** ; validation sur téléphone à venir.
+- Origine : le porteur : « on pourrait plutôt dire que le chariot ne peut pas être poussé à la main et qu'il y a besoin d'un drone de manutention pour tirer le chariot qui est beaucoup trop lourd », et « il faut que le palier du chariot soit une "porte fermée" qui bloque le passage ».
+- Décision : le chariot barre la porte par où l'on avance (vers la capsule, le morceau suivant ou la commande d'une branche de l'ordre libre). Il ne se pousse pas à la main : « Déplacer » le refuse, trop lourd. Seul le drone le tire dans son logement. Le frein, la poignée, « Tenir » et « Lâcher » disparaissent.
+- Au palier, la pièce dit que le chariot barre le passage ; une fois rangé, que le passage est dégagé (#271).
+- Remplace : D-304.
+
+### D-367 — Le drone roule seul, s'arrête aux portes fermées, et se suit
+
+- Date / statut : 2026-10-24 / **Validé** ; validation sur téléphone à venir.
+- Origine : le porteur : « on ne doit pas le transporter nous-mêmes », « C'est une bonne idée, ça, de devoir ouvrir le passage au drone. Vu qu'il fait du bruit, il faut arriver à protéger son parcours », puis « On peut mettre un bouton d'arrêt, mais par contre, il faut s'assurer de pouvoir le suivre ou bien le rattraper. Peut-être que le drone peut mettre deux actions à bouger pendant que nous, on n'en met qu'une seule. »
+- Décision : une fois lancé, le drone suit le plus court chemin qu'il peut franchir jusqu'au chariot, en deux actions par pièce. Devant une porte fermée, il attend que le passager l'ouvre ; il n'ouvre jamais rien. Il fait du bruit en roulant et en tirant le chariot, jamais à l'arrêt. Le bouton d'arrêt reste : « Arrêter », puis « Relancer ».
+- Précise : D-305 (la panne se répare en deux gestes, « Redresser » puis « Relancer ») ; modifie D-306 (le drone traverse la station, mais ne transporte rien, n'ouvre rien et ne combat pas) ; précise D-307 (envoyé, son pictogramme suit sa vraie pièce jusqu'au bout, renversé compris).
+- Limite [détail de l'agent] :
+  - **Chemin fixe** : le plus court par les passages qu'il peut franchir, portes ouvertes ou fermées, sans détour par une porte ouverte ; les égalités suivent l'ordre du monde. Une porte verrouillée est une porte fermée comme une autre.
+  - **Traction** : arrivé au palier, il tire le chariot à l'action suivante. Renversé avant, le chariot ne bouge pas.
+  - **Rien n'est raconté hors de vue** (C-06 §5), sauf le bruit qui s'arrête quand on l'entend, comme avant.
+  - Les dangers (feu, vide, froid, gravité) ne l'arrêtent pas, comme le disait D-306.
+
+### D-368 — Le drone n'est pas toujours au même endroit
+
+- Date / statut : 2026-10-24 / **Validé** ; validation sur téléphone à venir.
+- Origine : le porteur : « Le drone pourrait se retrouver dans d'autres pièces de la station, même loin du morceau », « rien n'empêche ce drone de se trouver derrière d'autres portes, telles que le sas de sécurité. […] Peut-être pas la passerelle qui a la planche fragile, et pas la grille », puis, pour les petites stations : « Change à chaque partie ».
+- Décision : l'assemblage tire la pièce du drone à chaque station, petites comprises, parmi toutes celles qu'on atteint avant le chariot, y compris derrière l'obstacle d'un autre morceau ou dans l'autre branche de l'ordre libre. Jamais d'où il devrait passer un vide, une grille, un passage étroit ou caché. Une petite station est prouvée à chacune de ses places de drone ; une grande, à celle que sa graine tire.
+- Élargit : D-319 pour le drone (non portable, hors de la zone de son morceau).
+- Limite [détail de l'agent] :
+  - **Jamais dans le repaire de la créature** : la conception l'autorisait, mais la station n'aurait plus de chemin sûr au départ (D-084).
+  - **Aucune borne de distance** : la durée des parties est mesurée et donnée au porteur dans la PR.
+
+### D-369 — Le drone ne propose sa tâche qu'une fois le chariot vu
+
+- Date / statut : 2026-10-24 / **Validé** ; validation sur téléphone à venir.
+- Origine : le porteur : « On arrive devant la solution sans avoir compris quel était le problème. »
+- Décision : avant d'avoir vu le palier du chariot, on peut regarder le drone, mais aucune action ne parle de l'envoyer. Après, il propose « Envoyer le drone dégager le passage ».
+- Limite [détail de l'agent] : « vu » veut dire être passé dans la pièce du chariot (pièces visitées de l'état), sans nouveau champ de sauvegarde.
