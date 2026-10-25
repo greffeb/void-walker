@@ -73,6 +73,12 @@ export function placesDuDrone(monde: DefMonde, drone: string, fermees: ReadonlyS
       }
     }
   }
+  // Une porte du chemin doit pouvoir s'ouvrir avant l'obstacle : sa commande (et la carte qu'elle exige) atteinte, sa pièce de
+  // manœuvre aussi ; sinon le drone attendrait devant elle pour toujours.
+  const atteint = (id: string | undefined): boolean => id === undefined || atteintes.has(monde.objets.find((objet) => objet.id === id)?.piece ?? '');
+  const ouvrableAvant = (liaison: DefLiaison): boolean =>
+    (liaison.manoeuvre === undefined || atteintes.has(liaison.manoeuvre))
+    && (liaison.verrouillee !== true || monde.objets.some((objet) => objet.deverrouille === liaison.id && atteintes.has(objet.piece) && atteint(objet.exige)));
   return monde.pieces.map((piece) => piece.id).filter((piece) => {
     // Jamais dans le repaire de la créature : on ne l'y lancerait pas sans risque, et la station doit garder un chemin sûr (D-084).
     // Ni au départ, qui reste vide (GP-04).
@@ -82,7 +88,7 @@ export function placesDuDrone(monde: DefMonde, drone: string, fermees: ReadonlyS
     let ici = piece;
     for (const id of chemin) {
       const liaison = liaisons.get(id);
-      if (liaison === undefined) return false;
+      if (liaison === undefined || !ouvrableAvant(liaison)) return false;
       ici = autreCote(liaison, ici);
       if (ici !== obstacle.piece && !atteintes.has(ici)) return false;
     }
@@ -197,11 +203,20 @@ export const ACTIONS_DRONE = {
   reprendre_drone: geste('reprendre_drone', ['arrete'], 'trajet', 'drone_rearme', 'rearmera_drone', true),
 } as const;
 
+/** Phase telle qu'on la voit et l'entend : en `trajet` devant une porte ouverte, il repart déjà (`roule`) ; arrêté devant une fermée. */
+export function phaseVisible(monde: DefMonde, etat: EtatPartie, drone: string): PhaseDrone | undefined {
+  const phase = etat.drones?.phases[drone];
+  const place = etat.objets[drone];
+  if (phase !== 'trajet' || place?.type !== 'piece') return phase;
+  const suivante = cheminDrone(monde, drone, place.piece)?.[0];
+  return suivante !== undefined && etat.liaisons[suivante] === true ? 'roule' : phase;
+}
+
 /** Actifs sans horloge : un drone fait du bruit en roulant et en tirant l'obstacle, jamais à l'arrêt (#270). */
 export function sonsDrones(monde: DefMonde, etat: EtatPartie): (SonEmis & { readonly drone: string })[] {
   if (etat.drones === undefined) return [];
   return monde.objets.flatMap((objet) => {
-    const phase = etat.drones?.phases[objet.id];
+    const phase = phaseVisible(monde, etat, objet.id);
     const place = etat.objets[objet.id];
     return (phase === 'roule' || phase === 'traction') && place?.type === 'piece'
       ? [{ piece: place.piece, intensite: 'fort', drone: objet.id }]

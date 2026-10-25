@@ -2429,7 +2429,7 @@ Les numéros D-304 à D-307 évitent les entrées préparées dans les chantiers
 - Décision : fournir une station d'essai et des compositions publiques prouvées contenant M-12. Le moteur, la CLI, les textes, la sauvegarde et le vérificateur doivent décrire le même comportement.
 - Carte : petit pictogramme de drone vert et pixelisé, distinct du passager et de la créature. Il représente un objet observé ; hors de vue, il reste un souvenir, pas un suivi en direct. Ne pas annoncer un drone dans une pièce seulement connue par signalétique.
 - Détail de réalisation à vérifier sur téléphone : les trois symboles se répartissent sous le texte ; si trois présences doivent tenir dans une petite pièce au dézoom, leur dessin se réduit juste assez pour ne pas chevaucher les murs. L'affichage à une ou deux présences reste inchangé.
-- Limite [détail de l'agent, à confirmer par le porteur] : `check:stations` prouve que M-12 permet de se débarrasser de la créature qui bouche le seul passage de M-01 (palier) ou de M-02 (atelier) quand il les précède : le bruit du drone l'attire en arrière. M-12 rejoint donc M-04, M-07, M-08 et M-10 dans la règle de D-268 ; quatre compositions de plus entrent au tirage (`m12-m01-m03-palier`, `m12-m01-m06-palier`, `m12-m02-m03-atelier`, `m12-m02-m06-atelier`). Pour prouver les compositions avec M-12, le vérificateur leur accorde 600 000 états au lieu de 150 000 (`m10-m12-m03-stockage` en demande 405 000) ; les autres compositions gardent leur plafond, et donc leur verdict.
+- Limite [détail de l'agent, à confirmer par le porteur] : **n'est plus vrai depuis D-366 à D-368 (#270)** : le drone se tait une fois le chariot rangé, M-12 ne compte plus dans la règle de D-268 et ces quatre compositions ne sont plus publiées. Texte d'origine : `check:stations` prouve que M-12 permet de se débarrasser de la créature qui bouche le seul passage de M-01 (palier) ou de M-02 (atelier) quand il les précède : le bruit du drone l'attire en arrière. M-12 rejoint donc M-04, M-07, M-08 et M-10 dans la règle de D-268 ; quatre compositions de plus entrent au tirage (`m12-m01-m03-palier`, `m12-m01-m06-palier`, `m12-m02-m03-atelier`, `m12-m02-m06-atelier`). Pour prouver les compositions avec M-12, le vérificateur leur accorde 600 000 états au lieu de 150 000 (`m10-m12-m03-stockage` en demande 405 000) ; les autres compositions gardent leur plafond, et donc leur verdict.
 
 ## Décisions validées — sas de sécurité M-11 (#203)
 
@@ -3115,6 +3115,7 @@ Conversation du 2026-10-24 avec le porteur, sur deux rapports de partie : « On 
 - Décision : une fois lancé, le drone suit le plus court chemin qu'il peut franchir jusqu'au chariot, en deux actions par pièce. Devant une porte fermée, il attend que le passager l'ouvre ; il n'ouvre jamais rien. Il fait du bruit en roulant et en tirant le chariot, jamais à l'arrêt. Le bouton d'arrêt reste : « Arrêter », puis « Relancer ».
 - Précise : D-305 (la panne se répare en deux gestes, « Redresser » puis « Relancer ») ; modifie D-306 (le drone traverse la station, mais ne transporte rien, n'ouvre rien et ne combat pas) ; précise D-307 (envoyé, son pictogramme suit sa vraie pièce jusqu'au bout, renversé compris).
 - Limite [détail de l'agent] :
+  - **Bruit** : devant une porte ouverte, il repart déjà et fait du bruit à chaque action ; on le voit « en route ». Devant une porte fermée, il se tait.
   - **Chemin fixe** : le plus court par les passages qu'il peut franchir, portes ouvertes ou fermées, sans détour par une porte ouverte ; les égalités suivent l'ordre du monde. Une porte verrouillée est une porte fermée comme une autre.
   - **Traction** : arrivé au palier, il tire le chariot à l'action suivante. Renversé avant, le chariot ne bouge pas.
   - **Rien n'est raconté hors de vue** (C-06 §5), sauf le bruit qui s'arrête quand on l'entend, comme avant.
@@ -3124,10 +3125,13 @@ Conversation du 2026-10-24 avec le porteur, sur deux rapports de partie : « On 
 
 - Date / statut : 2026-10-24 / **Validé** ; validation sur téléphone à venir.
 - Origine : le porteur : « Le drone pourrait se retrouver dans d'autres pièces de la station, même loin du morceau », « rien n'empêche ce drone de se trouver derrière d'autres portes, telles que le sas de sécurité. […] Peut-être pas la passerelle qui a la planche fragile, et pas la grille », puis, pour les petites stations : « Change à chaque partie ».
-- Décision : l'assemblage tire la pièce du drone à chaque station, petites comprises, parmi toutes celles qu'on atteint avant le chariot, y compris derrière l'obstacle d'un autre morceau ou dans l'autre branche de l'ordre libre. Jamais d'où il devrait passer un vide, une grille, un passage étroit ou caché. Une petite station est prouvée à chacune de ses places de drone ; une grande, à celle que sa graine tire.
+- Décision : l'assemblage tire la pièce du drone à chaque station, petites comprises, parmi toutes celles qu'on atteint avant le chariot, y compris derrière l'obstacle d'un autre morceau ou dans l'autre branche de l'ordre libre. Jamais d'où il devrait passer un vide, une grille, un passage étroit ou caché, ni une porte qu'on n'ouvre qu'au-delà du chariot. Une petite station est prouvée à chacune de ses places de drone ; une grande, à celle que sa graine tire.
 - Élargit : D-319 pour le drone (non portable, hors de la zone de son morceau).
 - Limite [détail de l'agent] :
   - **Jamais dans le repaire de la créature** : la conception l'autorisait, mais la station n'aurait plus de chemin sûr au départ (D-084).
+  - **Jamais au départ** : le vestibule de réveil reste vide (GP-04).
+  - **Jamais derrière une cloison de l'ordre libre** : le drone imposerait l'ordre des branches.
+  - **Retirées du tirage** : 14 petites compositions qui ne se prouvent pas pour une place (`SANS_PREUVE_DRONE`), sur la consigne du porteur : « sinon on les retire du tirage ».
   - **Aucune borne de distance** : la durée des parties est mesurée et donnée au porteur dans la PR.
 
 ### D-369 — Le drone ne propose sa tâche qu'une fois le chariot vu
@@ -3135,4 +3139,4 @@ Conversation du 2026-10-24 avec le porteur, sur deux rapports de partie : « On 
 - Date / statut : 2026-10-24 / **Validé** ; validation sur téléphone à venir.
 - Origine : le porteur : « On arrive devant la solution sans avoir compris quel était le problème. »
 - Décision : avant d'avoir vu le palier du chariot, on peut regarder le drone, mais aucune action ne parle de l'envoyer. Après, il propose « Envoyer le drone dégager le passage ».
-- Limite [détail de l'agent] : « vu » veut dire être passé dans la pièce du chariot (pièces visitées de l'état), sans nouveau champ de sauvegarde.
+- Limite [détail de l'agent] : « vu » veut dire être passé dans la pièce du chariot. Le drone passe alors en phase « prêt », que voit la clé du solveur (les pièces visitées, elle les ignore). En entrant au palier, le récit dit que le chariot barre le passage, puis qu'il est dégagé.

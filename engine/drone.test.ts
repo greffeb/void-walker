@@ -48,6 +48,20 @@ describe('chemin et places du drone', () => {
     expect(placesDuDrone(MONDE, 'x')).toEqual(['b', 'c']);
     expect(placesDuDrone({ ...MONDE, creature: { piece: 'f' } }, 'x')).toEqual(['b', 'c', 'e']);
   });
+  it('jamais une place dont le chemin passe une porte qu’on n’ouvre qu’au-delà de l’obstacle (revue finale)', () => {
+    // Sans le raccourci b ┄ d, le chemin de b passe b ▣ c, verrouillée par une commande posée au-delà de l'obstacle.
+    const verrouille: DefMonde = {
+      ...MONDE,
+      liaisons: [...MONDE.liaisons.filter((liaison) => liaison.id !== 'bd' && liaison.id !== 'bc'), { id: 'bc', nom: 'porte', entre: ['b', 'c'], ouverte: false, verrouillee: true }, { id: 'ae', nom: 'porte', entre: ['a', 'e'], ouverte: true }],
+      objets: [...MONDE.objets, { id: 'k2', nom: 'k2', piece: 'f', portable: false, deverrouille: 'bc' }],
+      creature: { piece: 'f' },
+    };
+    expect(cheminDrone(verrouille, 'x', 'b')).toEqual(['bc', 'cd']);
+    expect(placesDuDrone(verrouille, 'x')).toEqual(['c', 'e']);
+    // Une porte qui ne se manœuvre que d'une pièce jamais atteinte avant l'obstacle ferme de même le chemin.
+    const manoeuvre: DefMonde = { ...MONDE, liaisons: MONDE.liaisons.map((liaison) => (liaison.id === 'bd' ? { ...liaison, manoeuvre: 'f' } : liaison)), creature: { piece: 'g' } };
+    expect(placesDuDrone(manoeuvre, 'x')).toEqual(['c', 'e']);
+  });
   it('une cloison qu’on déverrouille avant l’obstacle ouvre une place', () => {
     const monde = avecObjets(MONDE.objets.map((objet) => (objet.id === 'k' ? { ...objet, piece: 'c' } : objet)));
     expect(placesDuDrone(monde, 'x')).toEqual(['b', 'c', 'h']);
@@ -118,6 +132,18 @@ describe('le drone roule seul et tire l’obstacle', () => {
     expect(etapes).toEqual([['trajet', 'b'], ['roule', 'b'], ['traction', 'd'], ['termine', 'd']]);
     expect(partie.etat.objets.z).toEqual({ type: 'piece', piece: 'd', position: 'range' });
     expect(partie.enregistrement.actions.every((action) => action.tirages.length === 0)).toBe(true);
+  });
+  it('porte suivante ouverte : du bruit à chaque action, et on le voit en route, pas en attente (revue finale)', () => {
+    let partie = pas(prete(true), 'envoyer', 'x');
+    const bruits: number[] = [sonsDrones(MONDE, partie.etat).length];
+    for (let n = 0; n < 3; n++) {
+      partie = pas(partie, 'attendre', 'a');
+      bruits.push(sonsDrones(MONDE, partie.etat).length);
+    }
+    expect(bruits).toEqual([1, 1, 1, 1]);
+    const ensemble = suite(prete(true), [['envoyer', 'x'], ['aller', 'ab']]);
+    expect(ou(ensemble)).toEqual(['trajet', 'b']);
+    expect(observer(MONDE, ensemble.etat).drones?.map(({ phase }) => phase)).toEqual(['roule']);
   });
   it('attend devant une porte fermée, sans bruit, et repart quand on l’ouvre', () => {
     let partie = suite(prete(false), [['envoyer', 'x'], ['attendre', 'a'], ['attendre', 'a']]);

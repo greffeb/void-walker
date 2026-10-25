@@ -1,5 +1,5 @@
 import { CATALOGUE } from './actions';
-import { range } from './drone';
+import { phaseVisible, range } from './drone';
 import {
   assourdie,
   chambreFroide,
@@ -106,7 +106,7 @@ export function observer(monde: DefMonde, etat: EtatPartie): Observation {
   return {
     ...(etat.drones === undefined ? {} : {
       drones: ici.flatMap((objet) => {
-        const phase = etat.drones?.phases[objet.id];
+        const phase = phaseVisible(monde, etat, objet.id);
         return phase === undefined ? [] : [{ objet: refObjet(monde, objet.id), phase }];
       }),
       // Le passage que barre un obstacle, puis qu'il libère une fois rangé (#271).

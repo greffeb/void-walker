@@ -1,6 +1,6 @@
 import type { Parcours } from '../types';
 
-// Station d'essai `m-12` : départ dans la galerie, drone tiré dans l'atelier (graine 4), créature dans la réserve ouverte sur le palier.
+// Station d'essai `m-12` : départ dans la galerie, drone tiré dans l'atelier (graine 1 ; seule place hors du départ et du repaire), créature dans la réserve ouverte sur le palier.
 export const PARCOURS_REPARATION_M12: Parcours = {
   nom: 'M-12 — Réserve laissée ouverte, drone renversé dans la galerie, redressé et relancé sous menace, fuite',
   etapes: [
