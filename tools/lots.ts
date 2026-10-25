@@ -83,3 +83,15 @@ export function lancerSousLots(script: string, lot: Lot, parts: number, passer: 
     }),
   );
 }
+
+/** Lance les sous-lots, recopie leurs sorties dans l'ordre et met le code de sortie à 1 si l'un échoue : nombre d'échecs. */
+export async function lancerEtRecopier(script: string, lot: Lot, parts: number, passer: readonly string[]): Promise<number> {
+  const sorties = await lancerSousLots(script, lot, parts, passer);
+  for (const { sortie, erreurs } of sorties) {
+    process.stdout.write(sortie);
+    process.stderr.write(erreurs);
+  }
+  const echecs = sorties.filter(({ code }) => code !== 0).length;
+  if (echecs > 0) process.exitCode = 1;
+  return echecs;
+}

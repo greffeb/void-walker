@@ -2,7 +2,7 @@ import { idPublic, jouer, nouvellePartie, observer, prefixer, type DefMonde, typ
 import { COMPOSITIONS_PUBLIEES, MORCEAUX, VERSION_GENERATEUR, type Catalogue } from '../content';
 import { CATALOGUE } from './catalogue';
 import { fileURLToPath } from 'node:url';
-import { dansLeLot, lancerSousLots, lireOptionsLots } from './lots';
+import { dansLeLot, lancerEtRecopier, lireOptionsLots } from './lots';
 import { isMainModule } from './repo-files';
 import { cleEtatRegles, MONDES_DE_REFERENCE, rangsDesMorceaux, stationDeReference } from './verifier-station';
 
@@ -236,14 +236,8 @@ async function principal(): Promise<void> {
   const { lot, parts, reste } = lireOptionsLots(argumentsCli);
   const debut = performance.now();
   if (parts > 1) {
-    const sorties = await lancerSousLots(fileURLToPath(import.meta.url), lot, parts, reste);
-    for (const { sortie, erreurs } of sorties) {
-      process.stdout.write(sortie);
-      process.stderr.write(erreurs);
-    }
-    const echecs = sorties.filter(({ code }) => code !== 0).length;
+    const echecs = await lancerEtRecopier(fileURLToPath(import.meta.url), lot, parts, reste);
     console.error(`check:sortie : lot ${lot.numero}/${lot.total} en ${parts} processus, ${((performance.now() - debut) / 1000).toFixed(1)} s${echecs > 0 ? `, ${echecs} processus en échec` : ''}.`);
-    if (echecs > 0) process.exitCode = 1;
     return;
   }
   const echantillon = demandes.length > 0 ? [] : echantillonGrandes(CATALOGUE);
