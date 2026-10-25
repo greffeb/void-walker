@@ -5,7 +5,8 @@ import { displayPath, listRepoFiles } from './repo-files';
 // Phrases écrites en dur dans l'interface (#239) : tout texte que l'appli affiche ou fait lire au lecteur d'écran vit dans
 // app/libelles/, pour qu'une autre langue n'ait qu'un fichier à écrire. Repérage par heuristique : texte JSX, attributs lus
 // (aria-label, title…) et chaînes qui ressemblent à du français (accent, apostrophe typographique, guillemets, points de
-// suspension, ou mot à majuscule initiale). Une chaîne en minuscules sans accent hors JSX n'est pas repérée.
+// suspension, ou mot à majuscule initiale), y compris dans les props des composants maison (#284). Une chaîne en minuscules
+// sans accent hors JSX et hors attribut lu n'est pas repérée.
 
 export interface PhraseEnDur {
   readonly fichier: string;
@@ -80,7 +81,7 @@ export function phrasesEnDur(fichier: string, source: string): PhraseEnDur[] {
     } else if (ts.isStringLiteral(noeud) || ts.isNoSubstitutionTemplateLiteral(noeud) || ts.isTemplateLiteralToken(noeud)) {
       if (!estTechnique(noeud) && !dansUnDiagnostic(noeud)) {
         const attribut = attributDe(noeud);
-        const lu = attribut === null ? FRANCAIS.test(noeud.text.trim()) : ATTRIBUTS_LUS.has(attribut) && LETTRE.test(noeud.text);
+        const lu = attribut !== null && ATTRIBUTS_LUS.has(attribut) ? LETTRE.test(noeud.text) : FRANCAIS.test(noeud.text.trim());
         if (lu) garder(noeud, noeud.text);
       }
     }
