@@ -34,6 +34,8 @@ export const MORCEAU_M08: DefMorceau = {
   fournit: ['acces'],
   // Grandes stations (spec 2026-10-18 §6.1, §6.3) : pièces où une annexe peut s’accrocher, côté avant et coupe de l’obstacle.
   grande: { obstacle: 'materiel', accueillantes: { 'p-quartiers': 'vie', 'p-atelier': 'technique', 'p-magasin': 'technique' }, avant: ['p-atelier', 'p-quartiers', 'p-ouest'], coupe: ['l-ouest-est'], cles: { 'o-planche': { etiquettes: ['rangement'] } } },
+  // La tuile retournée de haut en bas, la galerie d'entrée passe au sud de la carte et l'autre au nord (#296).
+  nomsRetournes: { 'p-ouest': { axe: 'y', nom: 'ouest_sud' }, 'p-est': { axe: 'y', nom: 'est_nord' } },
   assistance: [{ id: 'passerelle', quand: { type: 'arrivee', piece: 'p-ouest' } }],
 };
 
@@ -44,6 +46,8 @@ export const TEXTES_MORCEAU_M08: TextesMorceau = {
     atelier: repris(TEXTES_PROPRES_M08.noms, 'atelier'),
     ouest: repris(TEXTES_PROPRES_M08.noms, 'ouest'),
     est: repris(TEXTES_PROPRES_M08.noms, 'est'),
+    ouest_sud: { texte: 'galerie sud', genre: 'f', nombre: 's', elision: false },
+    est_nord: { texte: 'galerie nord', genre: 'f', nombre: 's', elision: false },
     magasin: { texte: 'magasin', genre: 'm', nombre: 's', elision: false },
     vide: repris(TEXTES_PROPRES_M08.noms, 'vide'),
     planche: repris(TEXTES_PROPRES_M08.noms, 'planche'),
@@ -55,6 +59,14 @@ export const TEXTES_MORCEAU_M08: TextesMorceau = {
     ],
     ouest: repris(TEXTES_PROPRES_M08.descriptions, 'ouest'),
     est: repris(TEXTES_PROPRES_M08.descriptions, 'est'),
+    ouest_sud: [
+      'La passerelle de la galerie s’arrête net : son milieu s’est effondré. Au-delà du vide, dans l’obscurité, on devine la galerie nord.',
+      'Un tablier de métal tordu, puis plus rien : un vide noir coupe la galerie en deux. La partie nord se perd dans l’ombre.',
+    ],
+    est_nord: [
+      'La partie nord de la galerie, à l’aplomb du vide. Deux portes s’ouvrent dans la paroi.',
+      'Un bout de passerelle accroché à la paroi, au-dessus du vide. Deux portes mènent plus loin.',
+    ],
     magasin: [
       'Un magasin de pièces détachées. Des bacs étiquetés montent jusqu’au plafond ; plusieurs gisent renversés.',
       'Des casiers grillagés, des bacs de visserie, un comptoir de distribution. Le fond du magasin reste sombre.',
