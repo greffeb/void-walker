@@ -131,6 +131,8 @@ export const TYPES_EVENEMENT = [
   'drone_arrete',
   'drone_termine',
   'drone_bruit_arrete',
+  'obstacle_en_travers',
+  'obstacle_degage',
 ] as const;
 export type TypeEvenement = (typeof TYPES_EVENEMENT)[number];
 
@@ -257,6 +259,8 @@ export type EntenduRecit = Entendu | 'toujours' | 'plus_rien';
 export type Evenement =
   | { readonly type: 'drone_envoye' | 'drone_deraille' | 'drone_replace' | 'drone_rearme' | 'drone_arrete' | 'drone_termine'; readonly objet: RefObjet }
   | { readonly type: 'drone_bruit_arrete'; readonly passage: RefPassage }
+  /** En entrant dans sa pièce : l'obstacle barre encore son passage, ou il est rangé et le passage dégagé (#271). */
+  | { readonly type: 'obstacle_en_travers' | 'obstacle_degage'; readonly objet: RefObjet; readonly passage: RefPassage }
   | { readonly type: 'reveil'; readonly piece: RefPiece }
   | { readonly type: 'objet_pris'; readonly objet: RefObjet; readonly piece: RefPiece }
   | { readonly type: 'objet_pose'; readonly objet: RefObjet; readonly piece: RefPiece }

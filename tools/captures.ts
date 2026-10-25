@@ -3488,7 +3488,7 @@ if (isMainModule(import.meta.url)) {
   console.log(
     erreurs.length === 0
       ? process.argv.includes('--drone')
-        ? 'Captures M12 : carte, remise sur rail, reprise sauvegardée, réarmement et évacuation vérifiés dans l’appli.'
+        ? 'Captures M12 : chariot vu, drone suivi sur la carte, redressement, reprise sauvegardée, relance et évacuation vérifiés dans l’appli.'
         : 'Captures : parcours du monde de test, P-C d’AR-01, P-V1 d’AR-02 et stations tirées réussis dans l’appli, reprise au dernier geste, police servie hors ligne.'
       : 'Captures : ÉCHEC.',
   );

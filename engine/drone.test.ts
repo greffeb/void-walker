@@ -155,6 +155,19 @@ describe('le drone roule seul et tire l’obstacle', () => {
     partie = pas(partie, 'reprendre_drone', 'x');
     expect(ou(partie)).toEqual(['roule', 'a']);
   });
+  it('en entrant, le récit dit que l’obstacle barre le passage, puis qu’il est dégagé (#271)', () => {
+    const arrivee = (partie: Partie, liaison: string) => {
+      const resultat = jouer(MONDE, partie, commande('aller', liaison));
+      if (resultat.type !== 'engagee') throw new Error('Action non engagée.');
+      return { partie: resultat.partie, evenements: resultat.evenements.filter((evenement) => evenement.type === 'obstacle_en_travers' || evenement.type === 'obstacle_degage') };
+    };
+    const barre = arrivee(suite(debut(), [['aller', 'ab'], ['aller', 'bc']]), 'cd');
+    expect(barre.evenements).toEqual([{ type: 'obstacle_en_travers', objet: expect.objectContaining({ id: idPublic(MONDE.id, 'z') }), passage: expect.objectContaining({ id: idPublic(MONDE.id, 'df') }) }]);
+    expect(arrivee(debut(), 'ab').evenements).toEqual([]);
+    const rangee = suite(prete(true), [['envoyer', 'x'], ['attendre', 'a'], ['attendre', 'a'], ['attendre', 'a'], ['attendre', 'a'], ['aller', 'ab']]);
+    expect(ou(rangee)).toEqual(['termine', 'd']);
+    expect(arrivee(rangee, 'bd').evenements.map((evenement) => evenement.type)).toEqual(['obstacle_degage']);
+  });
   it('l’obstacle est trop lourd pour la main', () => {
     const partie = suite(debut(), [['aller', 'ab'], ['aller', 'bc'], ['aller', 'cd']]);
     const refus = jouer(MONDE, partie, commande('deplacer', 'z', 'range'));

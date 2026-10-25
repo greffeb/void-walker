@@ -8,6 +8,8 @@ export const EVENEMENTS_DRONE = {
   drone_termine: ['{Le:objet} tire l’obstacle dans son logement, sur le côté, et coupe son moteur : le passage est libre.'],
   drone_bruit_arrete: ['Derrière {le:passage}, un choc métallique retentit. Le moteur se tait.'],
   passage_ouvert_encombre: ['Vous ouvrez {le:passage}. Un obstacle matériel barre encore le passage.'],
+  obstacle_en_travers: ['{Le:objet} barre {le:passage} : impossible de passer.'],
+  obstacle_degage: ['{Le:objet} est rangé{e:objet} sur le côté : {le:passage} est dégagé{e:passage}.'],
 } as const;
 export const REFUS_DRONE = {
   trop_lourd: 'Bien trop lourd pour être déplacé à la main : rien n’a été joué.',

@@ -264,6 +264,16 @@ export function avancerDrones(monde: DefMonde, avant: EtatPartie, effet: Effet):
   return { ...effet, etat, evenements };
 }
 
+/** En entrant dans une pièce, ce qu'on voit de ses obstacles : celui qui barre encore son passage, celui qui l'a dégagé (#271). */
+export function obstaclesALArrivee(monde: DefMonde, etat: EtatPartie, piece: string): Evenement[] {
+  return monde.objets.flatMap((objet) => {
+    const place = etat.objets[objet.id];
+    const liaison = objet.obstacle === undefined ? undefined : monde.liaisons.find((candidate) => candidate.id === objet.obstacle?.passage);
+    if (liaison === undefined || place?.type !== 'piece' || place.piece !== piece) return [];
+    return [{ type: range(etat, objet) ? 'obstacle_degage' : 'obstacle_en_travers', objet: refObjet(monde, objet.id), passage: refPassage(monde, etat, liaison, piece) }];
+  });
+}
+
 /** Appelé seulement par l'inspection de la source retenue, jamais après un mouvement de la créature. */
 export function renverserDrone(monde: DefMonde, etat: EtatPartie, id: string): Effet {
   const place = etat.objets[id];

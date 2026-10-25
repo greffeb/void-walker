@@ -323,6 +323,8 @@ export const ROLES_EVENEMENT: Readonly<Record<TypeRecit, readonly string[]>> = {
   drone_termine: ['objet'],
   drone_bruit_arrete: ['passage'],
   passage_ouvert_encombre: ['passage'],
+  obstacle_en_travers: ['objet', 'passage'],
+  obstacle_degage: ['objet', 'passage'],
   reveil: ['piece'],
   objet_pris: ['objet', 'piece'],
   objet_pose: ['objet', 'piece'],

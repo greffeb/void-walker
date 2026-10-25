@@ -50,6 +50,9 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
     case 'reveil':
     case 'piece_decouverte':
       return { piece: nomDe(textes, evenement.piece) };
+    case 'obstacle_en_travers':
+    case 'obstacle_degage':
+      return { objet: nomDe(textes, evenement.objet), passage: nomDe(textes, evenement.passage) };
     case 'objet_pris':
     case 'objet_pose':
       return { objet: nomDe(textes, evenement.objet), piece: nomDe(textes, evenement.piece) };

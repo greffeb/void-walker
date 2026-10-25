@@ -1,7 +1,7 @@
 import { capteurPose } from './capteur';
 import { pieceDeCarte } from './carte';
 import { dangerConnu, type SonEmis } from './creature';
-import { ACTIONS_DRONE, obstacleSur, range } from './drone';
+import { ACTIONS_DRONE, obstaclesALArrivee, obstacleSur, range } from './drone';
 import type { Des } from './des';
 import {
   assourdie,
@@ -374,6 +374,7 @@ const aller: ActionEngagee = {
     const piece = refPiece(monde, arrivee);
     const evenements: Evenement[] = [{ type: 'deplacement', passage: refPassage(monde, etat, liaison, etat.piece), piece }];
     if (nouvelle) evenements.push({ type: 'piece_decouverte', piece });
+    evenements.push(...obstaclesALArrivee(monde, suivant, arrivee));
     return { etat: suivant, evenements, franchie: liaison.id };
   },
 };
