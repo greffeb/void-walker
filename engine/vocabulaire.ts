@@ -137,7 +137,7 @@ export const TYPES_EVENEMENT = [
   'drone_part',
   'drone_arrive',
   'drone_bloque',
-  'drone_entendu',
+  'drone_gronde',
   'creature_attiree',
 ] as const;
 export type TypeEvenement = (typeof TYPES_EVENEMENT)[number];
@@ -270,7 +270,7 @@ export type Evenement =
   /** Le drone vu qui se met à rouler, part, arrive ou s'arrête devant une porte fermée (PR #300). */
   | { readonly type: 'drone_roule' | 'drone_part' | 'drone_arrive' | 'drone_bloque'; readonly objet: RefObjet; readonly passage: RefPassage }
   /** Son moteur entendu derrière une porte ouverte (PR #300). */
-  | { readonly type: 'drone_entendu'; readonly passage: RefPassage }
+  | { readonly type: 'drone_gronde'; readonly passage: RefPassage }
   /** La créature, qu'on entend, suit le grondement du drone (PR #300). */
   | { readonly type: 'creature_attiree'; readonly objet: RefObjet }
   | { readonly type: 'reveil'; readonly piece: RefPiece }

@@ -74,7 +74,7 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
     case 'bruit_mecanisme':
     case 'bruit_creature':
     case 'drone_bruit_arrete':
-    case 'drone_entendu':
+    case 'drone_gronde':
     case 'creature_entre':
     case 'feu_derriere':
     case 'creature_glisse':

@@ -317,7 +317,7 @@ function recitDrones(monde: DefMonde, avant: EtatPartie, effet: Effet, etat: Eta
     if (!bruyants.has(objet.id) || assourdie(monde, etat, ici) || assourdie(monde, etat, place.piece)) return [];
     const lien = monde.liaisons.find((liaison) => liaison.entre.includes(ici) && autreCote(liaison, ici) === place.piece && (etat.liaisons[liaison.id] === true || liaison.sonAuTravers === true));
     const entendu = passage(lien);
-    return entendu === undefined ? [] : [{ type: 'drone_entendu', passage: entendu }];
+    return entendu === undefined ? [] : [{ type: 'drone_gronde', passage: entendu }];
   });
 }
 

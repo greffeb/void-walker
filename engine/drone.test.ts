@@ -145,7 +145,7 @@ describe('récit du drone à chaque action (retours du porteur, PR #300)', () =>
   });
   it('entendu : derrière une porte ouverte, son moteur gronde à chaque action ; hors de portée, rien', () => {
     expect(recits(prete(true), [['envoyer', 'x'], ['attendre', 'a'], ['attendre', 'a'], ['attendre', 'a']]).slice(1)).toEqual([
-      [`drone_part ${id('ab')}`], [`drone_entendu ${id('ab')}`], [],
+      [`drone_part ${id('ab')}`], [`drone_gronde ${id('ab')}`], [],
     ]);
   });
   it('la créature qu’on entend suivre le grondement : le récit fait le lien', () => {

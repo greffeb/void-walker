@@ -39,7 +39,7 @@ export const FORMAT_ENREGISTREMENT = 1;
 /** Les événements par lesquels le passager perçoit déjà la créature à ce pas (spec créature mobile §3.3). */
 const SIGNES_CREATURE: ReadonlySet<Evenement['type']> = new Set(['bruit_creature', 'creature_entre', 'creature_glisse', 'porte_secouee', 'porte_enfoncee', 'pas_entendus', 'souffle_entendu', 'poursuite_proche']);
 /** Signes qui la situent déjà par un passage : le bruit de poursuite n'y ajoute rien (#258). */
-const RECIT_DRONE: ReadonlySet<Evenement['type']> = new Set(['drone_roule', 'drone_part', 'drone_arrive', 'drone_bloque', 'drone_entendu']);
+const RECIT_DRONE: ReadonlySet<Evenement['type']> = new Set(['drone_roule', 'drone_part', 'drone_arrive', 'drone_bloque', 'drone_gronde']);
 const DANGERS_RECIT: ReadonlySet<Evenement['type']> = new Set(['menace', 'premier_contact', 'aggravation_blesse', 'aggravation_critique', 'defaite', 'drone_bruit_arrete', 'creature_attiree']);
 const SITUEE_PAR_PASSAGE: ReadonlySet<Evenement['type']> = new Set(['bruit_creature', 'creature_entre', 'creature_glisse', 'porte_secouee', 'porte_enfoncee']);
 

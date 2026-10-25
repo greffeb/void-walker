@@ -13,7 +13,7 @@ export const EVENEMENTS_DRONE = {
   drone_part: ['{Le:objet} s’éloigne par {le:passage} ; son moteur gronde.'],
   drone_arrive: ['{Le:objet} arrive par {le:passage}, moteur grondant.'],
   drone_bloque: ['{Le:objet} s’arrête devant {le:passage}, fermé{e:passage}, et coupe son moteur.'],
-  drone_entendu: ['Derrière {le:passage}, le moteur du drone gronde.', 'Le grondement du drone vous parvient par {le:passage}.'],
+  drone_gronde: ['Derrière {le:passage}, le moteur du drone gronde.', 'Le grondement du drone vous parvient par {le:passage}.'],
   creature_attiree: ['Le grondement {de:objet} a attiré quelque chose.'],
   obstacle_degage: ['{Le:objet} est rangé{e:objet} sur le côté : {le:passage} est dégagé{e:passage}.'],
 } as const;
