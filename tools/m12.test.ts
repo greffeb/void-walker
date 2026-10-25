@@ -106,6 +106,21 @@ describe('M12 assemblé et joué par les surfaces réelles', () => {
     expect(partie.etat.drones?.phases['m-12/o-drone']).toBe('termine');
   });
 
+  it('quand la créature part vers le drone, son départ ne se raconte pas en plus (D-111, quatre phrases au plus)', () => {
+    let partie = nouvellePartie(monde, { version: 'recit', graine: 1 });
+    let derniers: readonly string[] = [];
+    for (const etape of PARCOURS_REPARATION_M12.etapes.slice(0, 5)) {
+      const option = trouverOption(observer(monde, partie.etat), etape);
+      if (option === undefined) throw new Error(`Option absente : ${etape.action}.`);
+      const resultat = jouer(monde, partie, option.commande);
+      if (resultat.type !== 'engagee') throw new Error(`${etape.action} non engagée.`);
+      partie = resultat.partie;
+      derniers = resultat.evenements.map((evenement) => evenement.type);
+    }
+    expect(derniers).toContain('creature_attiree');
+    expect(derniers).not.toContain('drone_part');
+  });
+
   it('une station avec drone est prouvée à chacune de ses places, et nomme celle qui échoue', () => {
     const rapport = verifierChaquePlace(entree, verifierStation);
     expect(rapport.verdict).toBe('prouvee');

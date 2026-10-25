@@ -164,6 +164,8 @@ describe('récit du drone à chaque action (retours du porteur, PR #300)', () =>
       const suivant = recitDrone(partie, 'attendre', 'c', monde);
       partie = suivant.partie;
       recits.push(...suivant.recit);
+      // Un moment de danger raconté : le récit du déplacement du drone se tait (D-111, quatre phrases au plus).
+      if (suivant.recit.includes('creature_attiree')) expect(suivant.recit.filter((type) => /^drone_(roule|part|arrive|bloque|entendu)/.test(type))).toEqual([]);
     }
     expect(recits).toContain('creature_attiree');
   });
