@@ -1,5 +1,6 @@
 import { idPublic, jouer, menu as menuPublic, nouvellePartie, type DefLiaison, type DefObjet, type IdAction, type Partie } from '../engine';
 import type { EntreeMonde } from '../content';
+import { cheminDrone } from '../engine/drone';
 import type { PasTemoin } from './verifier-grandes';
 
 interface Trajet {
@@ -437,7 +438,7 @@ export function construireTemoin(entree: EntreeMonde, ordre: readonly string[] =
     if (obstacle?.obstacle !== undefined) {
       const place = partie.etat.objets[obstacle.id];
       if (place?.type !== 'piece' || place.position === obstacle.obstacle.rangement) return false;
-      const drone = monde.objets.find((objet) => objet.drone?.poignee === obstacle.obstacle?.maintien);
+      const drone = monde.objets.find((objet) => objet.drone?.obstacle === obstacle.id);
       if (drone === undefined) return false;
       // Rapporter l'appui déplacé encore accessible avant que le drone n'alerte la créature.
       for (const appui of monde.objets) {
@@ -446,23 +447,44 @@ export function construireTemoin(entree: EntreeMonde, ordre: readonly string[] =
         if (monde.objets.some((objet) => objet.encombrant === true && porte(objet))) continue;
         essayer(() => naviguer(placeAppui.piece, () => agir('prendre', appui.id)).arrive);
       }
-      // Isoler la créature près de la poignée, sans fermer inutilement le passage que le chariot va libérer.
-      const poignee = drone.drone === undefined ? undefined : objets.get(drone.drone.poignee);
-      if (active() && poignee !== undefined && (voisines.get(poignee.piece) ?? []).some((porte) => porte.entre.includes(partie.etat.creature?.piece ?? ''))) {
+      // Isoler la créature près de l'obstacle, sans fermer inutilement le passage que le chariot va libérer.
+      if (active() && (voisines.get(obstacle.piece) ?? []).some((porte) => porte.entre.includes(partie.etat.creature?.piece ?? ''))) {
         for (const porteCreature of voisines.get(partie.etat.creature?.piece ?? '') ?? []) {
           if (partie.etat.liaisons[porteCreature.id] !== true) continue;
           const cote = autre(porteCreature, partie.etat.creature?.piece ?? '');
           essayer(() => atteindre(cote, () => agir('fermer', porteCreature.id)));
         }
       }
-      const phase = partie.etat.drones?.phases[drone.id];
-      if (phase !== 'maintien' && phase !== 'trajet') {
+      // Le drone roule seul jusqu'à l'obstacle et le range ; on attend, puis on rejoint le passage libéré (#270).
+      const attendreRangement = (): boolean => {
+        for (let tours = 0; tours < 4 * monde.pieces.length && partie.etat.drones?.phases[drone.id] !== 'termine'; tours++) {
+          if (partie.etat.drones?.phases[drone.id] === 'deraille' || !agir('attendre', partie.etat.piece)) return false;
+        }
+        return partie.etat.drones?.phases[drone.id] === 'termine';
+      };
+      const ouvrirChemin = (depuisDrone: string, chemin: readonly string[], fin: () => boolean): boolean => {
+        const [premiere, ...reste] = chemin;
+        const porteChemin = premiere === undefined ? undefined : monde.liaisons.find((candidate) => candidate.id === premiere);
+        if (porteChemin === undefined) return fin();
+        const loin = autre(porteChemin, depuisDrone);
+        const continuer = (): boolean => ouvrirChemin(loin, reste, fin);
+        if (partie.etat.liaisons[porteChemin.id] === true) return continuer();
+        return essayer(() => atteindre(depuisDrone, () => agir('ouvrir', porteChemin.id) && continuer()))
+          || essayer(() => atteindre(loin, () => agir('ouvrir', porteChemin.id) && continuer()));
+      };
+      const lancer = (): boolean => {
+        const phase = partie.etat.drones?.phases[drone.id];
+        if (phase === 'trajet' || phase === 'roule' || phase === 'traction') return attendreRangement() && atteindre(obstacle.piece, suite);
         const placeDrone = partie.etat.objets[drone.id];
-        if (placeDrone?.type !== 'piece' || !atteindre(placeDrone.piece)) return false;
-        if (phase === 'deraille' && !agir('replacer', drone.id)) return false;
-        if (!agir(phase === 'veille' ? 'envoyer' : phase === 'arrete' ? 'reprendre_drone' : 'rearmer', drone.id)) return false;
-      }
-      return atteindre(obstacle.piece, () => agir('deplacer', obstacle.id, obstacle.obstacle?.rangement) && suite());
+        if (placeDrone?.type !== 'piece') return false;
+        const chemin = cheminDrone(monde, drone.id, placeDrone.piece);
+        if (chemin === null) return false;
+        const geste: IdAction = phase === 'arrete' ? 'reprendre_drone' : phase === 'pret' ? 'envoyer' : 'rearmer';
+        return ouvrirChemin(placeDrone.piece, chemin, () => atteindre(placeDrone.piece, () =>
+          (phase !== 'deraille' || agir('replacer', drone.id)) && agir(geste, drone.id) && attendreRangement() && atteindre(obstacle.piece, suite)));
+      };
+      // Le drone n'accepte sa tâche qu'une fois l'obstacle vu (D-369).
+      return partie.etat.drones?.phases[drone.id] === 'veille' ? atteindre(obstacle.piece, lancer) : lancer();
     }
     if (liaison.etroite === true) {
       const larges = monde.objets.filter((objet) => objet.large === true && porte(objet));
