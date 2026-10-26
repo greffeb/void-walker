@@ -14,19 +14,28 @@ const MAGASIN = 'parties';
 const CLE = 'en-cours';
 const CLE_LUS = 'messages-lus';
 
-function requete<T>(demande: IDBRequest<T>): Promise<T> {
+export function requete<T>(demande: IDBRequest<T>): Promise<T> {
   return new Promise((resoudre, rejeter) => {
     demande.onsuccess = () => resoudre(demande.result);
     demande.onerror = () => rejeter(demande.error ?? new Error('Erreur IndexedDB.'));
   });
 }
 
-function ouvrir(fabrique: IDBFactory, nom: string): Promise<IDBDatabase> {
+export function ouvrir(fabrique: IDBFactory, nom: string, magasin: string = MAGASIN): Promise<IDBDatabase> {
   const demande = fabrique.open(nom, 1);
   demande.onupgradeneeded = () => {
-    demande.result.createObjectStore(MAGASIN);
+    demande.result.createObjectStore(magasin);
   };
   return requete(demande);
+}
+
+/** Attend la fin d'une transaction d'écriture : validée, refusée ou annulée. */
+export function attendreFin(transaction: IDBTransaction): Promise<void> {
+  return new Promise<void>((resoudre, rejeter) => {
+    transaction.oncomplete = () => resoudre();
+    transaction.onerror = () => rejeter(transaction.error ?? new Error('Écriture refusée.'));
+    transaction.onabort = () => rejeter(transaction.error ?? new Error('Écriture annulée.'));
+  });
 }
 
 /** Une base par adresse publiée : la version principale et chaque version de test gardent des parties séparées. */
@@ -48,11 +57,7 @@ export function stockageIndexedDB(nom: string, fabrique: IDBFactory = indexedDB)
     const db = await connexion();
     const transaction = db.transaction(MAGASIN, 'readwrite');
     modifier(transaction.objectStore(MAGASIN));
-    await new Promise<void>((resoudre, rejeter) => {
-      transaction.oncomplete = () => resoudre();
-      transaction.onerror = () => rejeter(transaction.error ?? new Error('Écriture refusée.'));
-      transaction.onabort = () => rejeter(transaction.error ?? new Error('Écriture annulée.'));
-    });
+    await attendreFin(transaction);
   };
   return {
     lire: () => lire(CLE),

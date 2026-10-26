@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
 import { Bulle } from './bulle';
+import { SANS_ABONNEMENT } from './constantes';
 import type { EtatInstallation, Installation } from './installation';
 import type { EtatMiseAJour, MiseAJour } from './miseAJour';
 import { PanneauRapport, RETOURS } from './PanneauRapport';
@@ -532,7 +533,6 @@ export function LigneVerification({ verification }: { readonly verification: () 
   );
 }
 
-const SANS_ABONNEMENT = (): (() => void) => () => undefined;
 const INDISPONIBLE = (): EtatMiseAJour => 'indisponible';
 const INSTALLATION_INDISPONIBLE = (): EtatInstallation => 'indisponible';
 
