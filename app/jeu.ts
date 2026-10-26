@@ -1,12 +1,13 @@
-import { apercu, exporter, historique, jouer, nouvellePartie, observer, rejouer, reprendrePartie, type DefMonde, type EtatCapteur, type Evenement, type Observation, type OptionMenu, type Partie, type RefPiece } from '../engine';
+import { apercu, exporter, historique, jouer, nouvellePartie, observer, rejouer, reprendrePartie, type DefMonde, type Enregistrement, type EtatCapteur, type Evenement, type Observation, type OptionMenu, type Partie, type RefPiece } from '../engine';
 import { alertesMenace, dangersDuRecit, raconter, raconterDerniers, raconterFin, rendreDangerVu, rendreApercu, rendreAssistance, rendreDocument, rendreMoment, texteAssistance, type ApercuTexte, type Catalogue, type DocumentRendu, type EntreeMonde, type RecitFin, type Refus, type TextesMonde } from '../content';
 import { rappelDe, rappelRepris, texteRappel, type TexteRappel } from './ecran';
-import type { Stockage } from './sauvegarde';
+import { PartieRemplacee, type Stockage } from './sauvegarde';
 import { dangersApparus, enVue } from './son/declencheurs';
 
 // Logique de l'écran, sans React : démarrer, reprendre, jouer, sauvegarder honnêtement (C-09 §2-§3).
 
-export type EtatSauvegarde = 'sauvegardee' | 'echec';
+/** `remplacee` : une autre fenêtre a fait avancer ou abandonné la partie ; celle-ci ne s'écrit plus (#278). */
+export type EtatSauvegarde = 'sauvegardee' | 'echec' | 'remplacee';
 
 export interface Jeu {
   readonly partie: Partie;
@@ -30,12 +31,24 @@ export interface Environnement {
   readonly graine: () => number;
 }
 
-async function enregistrer(env: Environnement, partie: Partie): Promise<EtatSauvegarde> {
+/** La partie enregistrée est un état antérieur de la même partie : même station, même graine, journal qui commence le nôtre. */
+function suiteDe(partie: Partie): (enregistree: unknown) => boolean {
+  const { monde, graine, actions } = partie.enregistrement;
+  return (enregistree) => {
+    const avant = (enregistree as { enregistrement?: Partial<Enregistrement> } | null)?.enregistrement;
+    if (avant?.monde !== monde || avant.graine !== graine || !Array.isArray(avant.actions)) return false;
+    const nombre = avant.actions.length;
+    return nombre < actions.length && JSON.stringify(avant.actions) === JSON.stringify(actions.slice(0, nombre));
+  };
+}
+
+/** `suite` : n'écrit que par-dessus un état antérieur de cette partie ; sans elle (nouvelle partie), remplace. */
+async function enregistrer(env: Environnement, partie: Partie, suite = false): Promise<EtatSauvegarde> {
   try {
-    await env.stockage.ecrire(JSON.parse(JSON.stringify(partie)) as unknown);
+    await env.stockage.ecrire(JSON.parse(JSON.stringify(partie)) as unknown, suite ? suiteDe(partie) : undefined);
     return 'sauvegardee';
-  } catch {
-    return 'echec';
+  } catch (erreur) {
+    return erreur instanceof PartieRemplacee ? 'remplacee' : 'echec';
   }
 }
 
@@ -207,7 +220,7 @@ export async function jouerOption(env: Environnement, jeu: Jeu, option: OptionMe
     ...recit,
     ...regardArrivee(env, avant, resultat.partie, resultat.evenements),
   ]);
-  return { partie: resultat.partie, ...signale, rappel, assistance, sauvegarde: await enregistrer(env, resultat.partie) };
+  return { partie: resultat.partie, ...signale, rappel, assistance, sauvegarde: await enregistrer(env, resultat.partie, true) };
 }
 
 /** Caméra du poste de surveillance et son état (lot 4). */

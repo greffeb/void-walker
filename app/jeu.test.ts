@@ -122,7 +122,7 @@ describe('appli : sauvegarde et reprise (AP-03, C-09)', () => {
   it('écriture refusée : échec signalé, jeu possible, nouvel essai à l’action suivante (C-09 §3)', async () => {
     const reel = stockageIndexedDB('panne', fabrique);
     let enPanne = false;
-    const env = environnement({ ...reel, ecrire: (donnees) => (enPanne ? Promise.reject(new Error('quota')) : reel.ecrire(donnees)) });
+    const env = environnement({ ...reel, ecrire: (donnees, accepte) => (enPanne ? Promise.reject(new Error('quota')) : reel.ecrire(donnees, accepte)) });
     let jeu = await pret(env);
     enPanne = true;
     jeu = await choisir(env, jeu, 'prendre');
@@ -134,6 +134,32 @@ describe('appli : sauvegarde et reprise (AP-03, C-09)', () => {
     jeu = await choisir(env, jeu, 'ouvrir');
     expect(jeu.sauvegarde).toBe('sauvegardee');
     expect((await pret(environnement(reel))).partie).toEqual(jeu.partie);
+  });
+
+  it('deux fenêtres : celle restée en arrière n’efface pas la partie avancée dans l’autre (#278)', async () => {
+    const onglet = environnement(stockageIndexedDB('fenetres', fabrique));
+    const appli = environnement(stockageIndexedDB('fenetres', fabrique));
+    const depart = await pret(onglet);
+    const enRetard = await pret(appli);
+    let jeu = await choisir(onglet, depart, 'prendre');
+    jeu = await choisir(onglet, jeu, 'ouvrir');
+    const perime = await choisir(appli, enRetard, 'prendre');
+    expect(perime.sauvegarde).toBe('remplacee');
+    expect((await pret(appli)).partie).toEqual(jeu.partie);
+    // Même nombre de gestes, autre geste : cette branche est refusée aussi.
+    const ailleurs = environnement(stockageIndexedDB('fenetres-rang', fabrique));
+    const commun = await pret(ailleurs);
+    await choisir(ailleurs, commun, 'prendre');
+    expect((await choisir(ailleurs, commun, 'ouvrir')).sauvegarde).toBe('remplacee');
+  });
+
+  it('deux fenêtres : un abandon dans l’une n’est pas annulé par un geste dans l’autre (#278)', async () => {
+    const onglet = environnement(stockageIndexedDB('fenetres-abandon', fabrique));
+    const appli = environnement(stockageIndexedDB('fenetres-abandon', fabrique));
+    const enRetard = await pret(appli);
+    expect(await abandonner(onglet)).toBe(true);
+    expect((await choisir(appli, enRetard, 'prendre')).sauvegarde).toBe('remplacee');
+    expect(await sauvegardePresente(onglet)).toBe(false);
   });
 
   it('partie d’une autre version : le jeu le dit au lieu de reprendre (C-09 §4)', async () => {
