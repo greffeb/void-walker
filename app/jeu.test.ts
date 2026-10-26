@@ -136,6 +136,18 @@ describe('appli : sauvegarde et reprise (AP-03, C-09)', () => {
     expect((await pret(environnement(reel))).partie).toEqual(jeu.partie);
   });
 
+  it('départ jamais écrit : l’écriture reprend à l’action suivante, sans se croire remplacée (C-09 §3, #278)', async () => {
+    const reel = stockageIndexedDB('panne-depart', fabrique);
+    let enPanne = true;
+    const env = environnement({ ...reel, ecrire: (donnees, accepte) => (enPanne ? Promise.reject(new Error('quota')) : reel.ecrire(donnees, accepte)) });
+    let jeu = await commencer(env);
+    expect(jeu.sauvegarde).toBe('echec');
+    enPanne = false;
+    jeu = await choisir(env, jeu, 'prendre');
+    expect(jeu.sauvegarde).toBe('sauvegardee');
+    expect((await pret(environnement(reel))).partie).toEqual(jeu.partie);
+  });
+
   it('deux fenêtres : celle restée en arrière n’efface pas la partie avancée dans l’autre (#278)', async () => {
     const onglet = environnement(stockageIndexedDB('fenetres', fabrique));
     const appli = environnement(stockageIndexedDB('fenetres', fabrique));

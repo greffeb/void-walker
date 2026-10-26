@@ -19,6 +19,8 @@ export interface Jeu {
   /** Paroles d'IA Station reçues à ce pas, après le récit (12 §3.3) ; aucune après un refus ou une consultation. */
   readonly assistance: readonly string[];
   readonly sauvegarde: EtatSauvegarde;
+  /** Cette partie a déjà été écrite une fois : dès lors, elle n'écrit que par-dessus son propre passé (#278). */
+  readonly ecrite: boolean;
 }
 
 export type Demarrage = { readonly type: 'pret'; readonly jeu: Jeu } | { readonly type: 'reprise_impossible'; readonly raison: string };
@@ -54,13 +56,15 @@ async function enregistrer(env: Environnement, partie: Partie, suite = false): P
 
 export async function commencer(env: Environnement): Promise<Jeu> {
   const partie = nouvellePartie(env.monde, { version: env.version, graine: env.graine() });
+  const sauvegarde = await enregistrer(env, partie);
   return {
     partie,
     recit: raconterDerniers(env.textes, partie),
     alertes: [],
     rappel: null,
     assistance: rendreAssistance(env.textes, partie.derniers),
-    sauvegarde: await enregistrer(env, partie),
+    sauvegarde,
+    ecrite: sauvegarde === 'sauvegardee',
   };
 }
 
@@ -101,6 +105,7 @@ export async function charger(env: Environnement): Promise<Demarrage | { readonl
       rappel,
       assistance: rendreAssistance(env.textes, partie.derniers),
       sauvegarde: 'sauvegardee',
+      ecrite: true,
     };
     return { type: 'pret', jeu };
   } catch (erreur) {
@@ -220,7 +225,9 @@ export async function jouerOption(env: Environnement, jeu: Jeu, option: OptionMe
     ...recit,
     ...regardArrivee(env, avant, resultat.partie, resultat.evenements),
   ]);
-  return { partie: resultat.partie, ...signale, rappel, assistance, sauvegarde: await enregistrer(env, resultat.partie, true) };
+  // Tant que le départ n'a jamais été écrit, rien à protéger de cette partie : l'écriture reprend sans condition (C-09 §3).
+  const sauvegarde = await enregistrer(env, resultat.partie, jeu.ecrite);
+  return { partie: resultat.partie, ...signale, rappel, assistance, sauvegarde, ecrite: jeu.ecrite || sauvegarde === 'sauvegardee' };
 }
 
 /** Caméra du poste de surveillance et son état (lot 4). */
