@@ -1,4 +1,5 @@
 import type { ExportPartie } from '../engine';
+import { attendreFin, ouvrir, requete } from './sauvegarde';
 
 // Validation signée par le téléphone (C-10 §4, D-130, AP-04) : une clé ECDSA P-256 créée une fois par le jeu, privée et
 // non exportable, gardée sur l'appareil ; chaque « je valide » signe une attestation qui lie la partie, la version et la PR.
@@ -184,34 +185,18 @@ const CLE = 'telephone';
 
 /** Coffre IndexedDB : une base à part, la même pour la version publique et les versions de test de la même adresse. */
 export function coffreIndexedDB(nom = 'void-walker:validation', fabrique: IDBFactory = indexedDB): Coffre {
-  const requete = <T>(demande: IDBRequest<T>): Promise<T> =>
-    new Promise((resoudre, rejeter) => {
-      demande.onsuccess = () => resoudre(demande.result);
-      demande.onerror = () => rejeter(demande.error ?? new Error('Erreur IndexedDB.'));
-    });
-  const ouvrir = (): Promise<IDBDatabase> => {
-    const demande = fabrique.open(nom, 1);
-    demande.onupgradeneeded = () => {
-      demande.result.createObjectStore(MAGASIN);
-    };
-    return requete(demande);
-  };
   return {
     async lire() {
-      const db = await ouvrir();
+      const db = await ouvrir(fabrique, nom, MAGASIN);
       const valeur = (await requete(db.transaction(MAGASIN, 'readonly').objectStore(MAGASIN).get(CLE))) as ClesTelephone | undefined;
       db.close();
       return valeur ?? null;
     },
     async ecrire(cles) {
-      const db = await ouvrir();
+      const db = await ouvrir(fabrique, nom, MAGASIN);
       const transaction = db.transaction(MAGASIN, 'readwrite');
       transaction.objectStore(MAGASIN).put(cles, CLE);
-      await new Promise<void>((resoudre, rejeter) => {
-        transaction.oncomplete = () => resoudre();
-        transaction.onerror = () => rejeter(transaction.error ?? new Error('Écriture refusée.'));
-        transaction.onabort = () => rejeter(transaction.error ?? new Error('Écriture annulée.'));
-      });
+      await attendreFin(transaction);
       db.close();
     },
   };

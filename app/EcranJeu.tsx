@@ -26,6 +26,7 @@ import {
   type Etape,
   type Groupe,
 } from './ecran';
+import { AUCUN_SIGNAL } from './constantes';
 import { Bulle, BulleAncree, FicheDocument, garderFocus } from './bulle';
 import { EcranCarte } from './carte/EcranCarte';
 import { carteRevelee as revelee } from './carte/revelee';
@@ -49,9 +50,6 @@ const SANS_CONFIRMATION = LIBELLES.jeu.sansConfirmation;
 
 /** Historique vide, pour un monde sans message d'IA Station. */
 const AUCUN_MESSAGE = LIBELLES.ia.aucunMessage;
-
-/** Aucun signal : réveil, reprise, retour des options (15 §2.2). */
-const AUCUN_SIGNAL: readonly Signal[] = [];
 
 const { inventaire: NAV_INVENTAIRE, ia: NAV_IA, carte: NAV_CARTE } = LIBELLES.jeu.boutonsNavigation;
 

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 
 import { observer, type Evenement, type OptionMenu, type Partie } from '../engine';
 import type { EntreeMonde } from '../content';
 import type { Chronometre } from './duree';
+import { AUCUN_SIGNAL, SANS_ABONNEMENT } from './constantes';
 import { EcranJeu, EcranReveil } from './EcranJeu';
 import { EcranFin } from './EcranFin';
 import { EcranIntro } from './EcranIntro';
@@ -33,8 +34,6 @@ import type { Signal } from './son/recettes';
 import type { EtatVerification } from './verification';
 import { LIBELLES } from './libelles';
 
-const AUCUN_SIGNAL: readonly Signal[] = [];
-const SANS_ABONNEMENT = (): (() => void) => () => undefined;
 const AUCUN = (): number => 0;
 
 /** Événements du pas qui vient d'être joué ; aucun si la partie n'a pas avancé (refus, consultation). */

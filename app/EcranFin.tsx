@@ -2,15 +2,13 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { observer } from '../engine';
 import { nomDe, remplir } from '../content';
 import { dejaEcrit, DUREE_ECRITURE_MS, marquerEcrit } from './ecriture';
+import { AUCUN_SIGNAL } from './constantes';
 import { Recit } from './EcranJeu';
 import { recitDeFin, type Environnement, type Jeu } from './jeu';
 import { EnvoyerMaPartie } from './PanneauRapport';
 import type { Retour } from './rapports';
 import { annoncerTexte, useSon } from './son/contexte';
-import type { Signal } from './son/recettes';
 import { LIBELLES } from './libelles';
-
-const AUCUN_SIGNAL: readonly Signal[] = [];
 
 /**
  * Écran de fin (12 §4.11) : le récit seulement, sans score ni bilan (D-086, D-284). Défaite ou évacuation : la partie racontée
