@@ -27,6 +27,7 @@ export const FR = {
     remplacement: 'Une partie est en cours. La nouvelle partie la remplacera.',
     commencer: 'Commencer',
     repriseImpossible: 'La partie enregistrée ne peut pas être reprise. Vous pouvez commencer une nouvelle partie.',
+    remplacee: 'La partie a changé dans une autre fenêtre du jeu. Votre dernier geste ici n’a pas été enregistré.',
     stationRefusee: (motif: string): string => `Station refusée : ${motif}`,
   },
 

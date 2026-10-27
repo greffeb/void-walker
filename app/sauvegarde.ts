@@ -2,7 +2,8 @@
 
 export interface Stockage {
   lire(): Promise<unknown>;
-  ecrire(donnees: unknown): Promise<void>;
+  /** `accepte` : écrit seulement si la partie déjà enregistrée le permet, lue dans la même transaction ; sinon `PartieRemplacee` (#278). */
+  ecrire(donnees: unknown, accepte?: (enregistree: unknown) => boolean): Promise<void>;
   /** Messages lus : affichage seulement, hors de la partie, jamais rejoués. */
   lireLus(): Promise<unknown>;
   ecrireLus(donnees: unknown): Promise<void>;
@@ -13,6 +14,9 @@ export interface Stockage {
 const MAGASIN = 'parties';
 const CLE = 'en-cours';
 const CLE_LUS = 'messages-lus';
+
+/** Une autre fenêtre de l'appli a fait avancer, remplacé ou abandonné la partie enregistrée (#278) ; jamais montrée telle quelle. */
+export class PartieRemplacee extends Error {}
 
 export function requete<T>(demande: IDBRequest<T>): Promise<T> {
   return new Promise((resoudre, rejeter) => {
@@ -61,7 +65,28 @@ export function stockageIndexedDB(nom: string, fabrique: IDBFactory = indexedDB)
   };
   return {
     lire: () => lire(CLE),
-    ecrire: (donnees) => ecrire((magasin) => magasin.put(donnees, CLE)),
+    ecrire: async (donnees, accepte) => {
+      let refusee = false;
+      try {
+        await ecrire((magasin) => {
+          if (accepte === undefined) {
+            magasin.put(donnees, CLE);
+            return;
+          }
+          const actuelle = magasin.get(CLE);
+          // Écrire dans le rappel de la lecture : un `await` ici laisserait la transaction se fermer.
+          actuelle.onsuccess = () => {
+            if (accepte(actuelle.result ?? null)) magasin.put(donnees, CLE);
+            else {
+              refusee = true;
+              magasin.transaction.abort();
+            }
+          };
+        });
+      } catch (erreur) {
+        throw refusee ? new PartieRemplacee() : erreur;
+      }
+    },
     lireLus: () => lire(CLE_LUS),
     ecrireLus: (donnees) => ecrire((magasin) => magasin.put(donnees, CLE_LUS)),
     effacer: () =>

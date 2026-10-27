@@ -44,7 +44,8 @@ function evenementsDuPas(avant: Jeu, apres: Jeu): readonly Evenement[] {
 /** `lus` : messages d'IA Station déjà lus, à part du jeu pour ne pas réécrire le récit quand il change (D-186). */
 type Ecran =
   | { readonly type: 'chargement' }
-  | { readonly type: 'accueil'; readonly partiePresente: boolean; readonly confirmation: boolean }
+  /** `remplacee` : renvoyé ici parce qu'une autre fenêtre a fait avancer ou abandonné la partie (#278). */
+  | { readonly type: 'accueil'; readonly partiePresente: boolean; readonly confirmation: boolean; readonly remplacee?: boolean }
   /** Intro de NOUVELLE PARTIE (12 §4.1 bis, D-308) : la partie est déjà créée et enregistrée, DÉMARRER mène au réveil. */
   | { readonly type: 'intro'; readonly jeu: Jeu; readonly numero: number }
   | { readonly type: 'reveil'; readonly jeu: Jeu; readonly lus: readonly string[] }
@@ -152,11 +153,26 @@ export function App({
     };
   }, [stockage]);
 
+  const allerAccueil = useCallback(
+    async (remplacee = false) => {
+      setOccupe(true);
+      try {
+        setEcran({ type: 'accueil', partiePresente: await sauvegardePresente(env), confirmation: false, remplacee });
+      } catch {
+        setEcran({ type: 'reprise_impossible' });
+      } finally {
+        setOccupe(false);
+      }
+    },
+    [env],
+  );
+
   const choisir = useCallback(
     async (jeu: Jeu, option: OptionMenu) => {
       setOccupe(true);
       try {
         const suivant = await jouerOption(env, jeu, option);
+        if (suivant.sauvegarde === 'remplacee') return void (await allerAccueil(true));
         const signaux = signauxApres(observer(env.monde, jeu.partie.etat), observer(env.monde, suivant.partie.etat), evenementsDuPas(jeu, suivant));
         setEcran((avant) => ({
           type: 'jeu',
@@ -169,7 +185,7 @@ export function App({
         setOccupe(false);
       }
     },
-    [env],
+    [env, allerAccueil],
   );
 
   /**
@@ -233,13 +249,14 @@ export function App({
       setOccupe(true);
       try {
         const suivant = await jouerOption(env, jeu, option);
+        if (suivant.sauvegarde === 'remplacee') return void (await allerAccueil(true));
         const signaux = signauxApres(observer(env.monde, jeu.partie.etat), observer(env.monde, suivant.partie.etat), evenementsDuPas(jeu, suivant));
         setEcran({ type: 'jeu', jeu: suivant, lus, signaux, carteANouveau: carteANouveau(false, evenementsDuPas(jeu, suivant)) });
       } finally {
         setOccupe(false);
       }
     },
-    [env],
+    [env, allerAccueil],
   );
 
   /** Ouvrir la fenêtre d'IA Station : tous les messages reçus passent en lus, la partie ne change pas (12 §3.9). */
@@ -264,17 +281,6 @@ export function App({
     },
     [garderReglages],
   );
-
-  const allerAccueil = useCallback(async () => {
-    setOccupe(true);
-    try {
-      setEcran({ type: 'accueil', partiePresente: await sauvegardePresente(env), confirmation: false });
-    } catch {
-      setEcran({ type: 'reprise_impossible' });
-    } finally {
-      setOccupe(false);
-    }
-  }, [env]);
 
   /** Depuis l'accueil, la partie enregistrée est lue, jamais créée ni modifiée. */
   const optionsDepuisAccueil = useCallback(async () => {
@@ -355,6 +361,11 @@ export function App({
               <span>WALKER▮</span>
             </h1>
             <div className="actions-accueil">
+              {ecran.remplacee && (
+                <p className="avis" role="alert">
+                  {LIBELLES.accueil.remplacee}
+                </p>
+              )}
               {ecran.confirmation ? (
                 <section className="confirmation-accueil" aria-label={LIBELLES.accueil.confirmation}>
                   <p>{LIBELLES.accueil.remplacement}</p>
