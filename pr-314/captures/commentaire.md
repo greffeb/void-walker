@@ -58,7 +58,7 @@ AR-01 au départ et au local énergie (cinq pas de P-C), fiche, liste, texte tr�
 
 - locator.click: Timeout 30000ms exceeded.
 Call log:
-  - waiting for locator('.dock .deplacements').getByRole('button', { name: /^salle d’embarquement, en bas$/i })
+  - waiting for locator('.dock .deplacements').getByRole('button', { name: /^palier du chariot, à droite$/i })
 
 `?station=m07-m03-soute-2718281828` : réveil, plan au départ, NOUVELLE PARTIE garde la station. `?station=m08-m09-m06-embarquement-2718281828`, trois obstacles avec la baie (#153) : réveil, plan au départ. `?station=m08-m01-m06-palier-2718281828`, chemins d’AR-01 (#154) : réveil, plan au départ. Adresse nue : station tirée, REJOUER la garde, NOUVELLE PARTIE en tire une autre et mène au réveil, reprise sur sa station, `?monde=ar-01` à part. `?station=m07-m03-inconnue-1` : refusée avec son motif. `?monde=m-08`, planche perdue exprès (#156) : information « plus aucune sortie », puis le rappel, la partie continue. Grandes stations publiées (#202, #207), à 390 et 320 px : une clé hors de sa pièce d’origine (son dock, puis sa fiche), une salle pillée (le récit de « Regarder ») et une trousse de soin (l’inventaire), chacune dans la première station de la liste triée qui en a. Documents (#209), à 390 et 320 px : la fiche d’une note, d’un journal, d’un message, d’une inscription et d’une affiche, et d’une note de rangement avec sa pièce soulignée, chacune dans la première station de la liste triée qui en a une à portée.
 
