@@ -1,6 +1,6 @@
 import { idPublic, jouer, observer, type Commande, type DefMonde, type Evenement, type Observation, type Partie } from '../engine';
 import { MONDES, type EntreeMonde } from '../content';
-import { aRevoirIci, botAleatoire, creerBot, jouerAvecBot, optionsJouables, PLAFOND_ACTIONS, PROFILS, type Bot, type VueBot } from './bots';
+import { aRevoirIci, BASES, botAleatoire, creerBot, jouerAvecBot, optionsJouables, PLAFOND_ACTIONS, PROFILS, VARIANTES, type Bot, type Variante, type VueBot } from './bots';
 import { CATALOGUE } from './catalogue';
 
 // Bots de mesure (#194 §2.3) : ils jouent par le menu public, de façon reproductible.
@@ -286,5 +286,40 @@ describe('bots', () => {
 
   it('refuse un bot qui propose une commande hors du menu', () => {
     expect(() => jouerAvecBot(entree, { choisir: () => ({ action: 'aller', cible: 'nulle-part' }) }, 1)).toThrow(/refusée/);
+  });
+});
+
+describe('bots à un seul réglage changé (mesure 2026-11)', () => {
+  it('chaque variante rejoue la même partie à la même graine, et part d’un profil d’origine', () => {
+    for (const variante of Object.keys(VARIANTES) as Variante[]) {
+      const premiere = jouerAvecBot(entree, creerBot(variante, 3), 3, 80);
+      expect(jouerAvecBot(entree, creerBot(variante, 3), 3, 80).partie.enregistrement).toEqual(premiere.partie.enregistrement);
+      expect(['prudent', 'averti']).toContain(BASES[variante]);
+    }
+  });
+
+  it('le bot qui ferme chaque porte ferme plus que l’averti ; le crochet de suivi reçoit chaque action engagée', () => {
+    const fermetures = (profil: 'averti' | 'ferme-tout'): number => {
+      let comptees = 0;
+      let pas = 0;
+      const { indicateurs } = jouerAvecBot(entree, creerBot(profil, 2), 2, 60, (_avant, commande) => {
+        pas++;
+        if (commande.action === 'fermer') comptees++;
+      });
+      expect(pas).toBe(indicateurs.actions);
+      return comptees;
+    };
+    expect(fermetures('ferme-tout')).toBeGreaterThan(fermetures('averti'));
+  });
+
+  it('le bot qui enchaîne ouvre la grille de M-02 dès que la caisse est dessous, au lieu de la redéplacer', () => {
+    const station = CATALOGUE.resoudre('g5-ol-m02-m08-m12-m06-stockage-1');
+    if ('refus' in station) throw new Error(station.refus);
+    const { monde } = station;
+    const commandes: Commande[] = [];
+    jouerAvecBot(station, creerBot('prudent-enchaine', 1), 1, 120, (_avant, commande) => commandes.push(commande));
+    const pose = commandes.findIndex((commande) => commande.parametre === idPublic(monde.id, 'm-02/pos-sous-grille'));
+    expect(pose).toBeGreaterThanOrEqual(0);
+    expect(commandes[pose + 1]).toEqual({ action: 'ouvrir', cible: idPublic(monde.id, 'm-02/l-atelier-pompes') });
   });
 });
