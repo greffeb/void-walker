@@ -35,6 +35,8 @@ export interface Rythme {
   /** Action du premier signe de la créature : bruit, trace fraîche, écoute qui entend, message d'IA Station, ou la créature elle-même. */
   readonly premierSigne: number | null;
   readonly premierContact: number | null;
+  /** Actions qui portent un signe avant le premier contact (toute la partie s'il n'a pas lieu) : ce qui l'annonce sans la montrer. */
+  readonly signesAvantContact: number;
   /** Coups de griffes reçus. */
   readonly griffes: number;
   /** Fois où la créature est entrée en vue. */
@@ -88,6 +90,7 @@ export class SuiviRythme {
   private actions = 0;
   private premierSigne: number | null = null;
   private premierContact: number | null = null;
+  private signesAvantContact = 0;
   private griffes = 0;
   private faceAFace = 0;
   private poursuite = 0;
@@ -125,6 +128,7 @@ export class SuiviRythme {
         if (evenement.type === 'defaite') this.mort = evenement.causes.includes('griffes') ? 'creature' : 'environnement';
       }
     }
+    if (this.premierContact === null && evenements.some(estSigne)) this.signesAvantContact++;
     this.calmeEnCours = evenements.every(banal) ? this.calmeEnCours + 1 : 0;
     this.calme = Math.max(this.calme, this.calmeEnCours);
     const ici = this.pieces.at(-1);
@@ -154,6 +158,7 @@ export class SuiviRythme {
       actions: this.actions,
       premierSigne: this.premierSigne,
       premierContact: this.premierContact,
+      signesAvantContact: this.signesAvantContact,
       griffes: this.griffes,
       faceAFace: this.faceAFace,
       poursuite: this.poursuite,

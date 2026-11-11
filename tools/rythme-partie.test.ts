@@ -30,7 +30,7 @@ const attentiste: Bot = { choisir: ({ observation }) => observation.menu.find((o
 describe('rythme d’une partie', () => {
   it('le chemin prouvé, sans errance : évacuation, à la longueur du témoin, sans coup ni face-à-face', () => {
     const { rythme } = mesurer(calme, botTemoin(temoin), 600);
-    expect(rythme).toMatchObject({ fin: 'evacuation', actions: temoin.length, griffes: 0, faceAFace: 0, premierContact: null, sursis: null, perdu: null, attentes: 0 });
+    expect(rythme).toMatchObject({ fin: 'evacuation', actions: temoin.length, signesAvantContact: 0, griffes: 0, faceAFace: 0, premierContact: null, sursis: null, perdu: null, attentes: 0 });
     expect(rythme.pieces).toBeGreaterThan(5);
   });
 
@@ -55,6 +55,7 @@ describe('rythme d’une partie', () => {
       expect(rythme.premierContact).toBe(indicateurs.premierContact);
       expect(rythme.calme).toBeLessThanOrEqual(rythme.actions);
       if (rythme.premierContact !== null) expect(rythme.premierSigne).toBeLessThanOrEqual(rythme.premierContact);
+      expect(rythme.signesAvantContact).toBeLessThanOrEqual(rythme.premierContact ?? rythme.actions);
       if (rythme.fin !== 'creature') continue;
       tuees++;
       expect(rythme.griffes).toBeGreaterThanOrEqual(1);
