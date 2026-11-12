@@ -231,11 +231,13 @@ export function enMarkdown(parties: readonly PartieMesuree[], commit = 'inconnu'
     if (siennes.length === 0) return [];
     return [`| ${NOMS[bot]} | ${palmares(siennes.map((perdu) => perdu.frontiere ?? 'aucun'), 5)} | ${palmares(siennes.flatMap((perdu) => (perdu.geste === null ? [] : [perdu.geste])), 5)} |`];
   });
-  // Par morceau, pour le bot averti : part des parties qui contiennent le morceau et s'y arrêtent, perdues.
-  const morceaux = [...new Set(base.flatMap((partie) => partie.morceaux))].sort().map((morceau) => {
-    const avec = base.filter((partie) => partie.morceaux.includes(morceau));
+  // Par morceau, pour le prudent qui enchaîne ses gestes (le moins gêné par les défauts de bot), à défaut le premier bot joueur.
+  const temoinDesMorceaux = joueurs.includes('prudent-enchaine') ? 'prudent-enchaine' : joueurs[0];
+  const duTemoin = temoinDesMorceaux === undefined ? [] : de(temoinDesMorceaux);
+  const morceaux = [...new Set(duTemoin.flatMap((partie) => partie.morceaux))].sort().map((morceau) => {
+    const avec = duTemoin.filter((partie) => partie.morceaux.includes(morceau));
     const compte = (fin: Fin): number => avec.filter((partie) => partie.rythme.fin === fin).length;
-    return `| ${morceau} | ${avec.length} | ${pourcent(compte('evacuation'), avec.length)} | ${pourcent(compte('creature'), avec.length)} | ${pourcent(compte('environnement'), avec.length)} | ${pourcent(compte('perdu') + compte('sans_sortie'), avec.length)} | ${pourcent(avec.filter((partie) => partie.rythme.perdu?.frontiere === morceau).length, avec.length)} |`;
+    return `| ${morceau} | ${avec.length} | ${pourcent(compte('evacuation'), avec.length)} | ${pourcent(compte('creature'), avec.length)} | ${pourcent(compte('environnement'), avec.length)} | ${pourcent(compte('sans_sortie'), avec.length)} | ${pourcent(compte('perdu'), avec.length)} | ${pourcent(avec.filter((partie) => partie.rythme.perdu?.frontiere === morceau).length, avec.length)} |`;
   });
   const vitesse = bots.map((bot) => {
     const siennes = de(bot);
@@ -290,12 +292,12 @@ export function enMarkdown(parties: readonly PartieMesuree[], commit = 'inconnu'
     ...ou,
     ...(morceaux.length === 0 ? [] : [
       '',
-      '### Bot averti, par morceau de la station',
+      `### Par morceau de la station (${temoinDesMorceaux === undefined ? '' : NOMS[temoinDesMorceaux]})`,
       '',
-      'Une station compte pour chacun de ses morceaux. Dernière colonne : parties perdues dont le passage jamais franchi est dans ce morceau.',
+      'Une station compte pour chacun de ses morceaux. Dernière colonne : parties perdues ou sans sortie dont le passage jamais franchi est dans ce morceau.',
       '',
-      '| Morceau | Parties | Évacuation | Tué par la créature | Tué par l’environnement | Perdu | Perdu dans ce morceau |',
-      '| --- | ---: | ---: | ---: | ---: | ---: | ---: |',
+      '| Morceau | Parties | Évacuation | Tué par la créature | Tué par l’environnement | Plus aucune sortie | Perdu | Arrêté dans ce morceau |',
+      '| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |',
       ...morceaux,
     ]),
     '',
