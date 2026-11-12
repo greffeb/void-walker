@@ -148,6 +148,28 @@ describe('appli : sauvegarde et reprise (AP-03, C-09)', () => {
     expect((await pret(environnement(reel))).partie).toEqual(jeu.partie);
   });
 
+  it('connexion coupée par le navigateur : lecture et écriture la rouvrent, la partie se reprend (#279)', async () => {
+    const ouvertes: IDBDatabase[] = [];
+    const espion = Object.create(fabrique, {
+      open: {
+        value: (nom: string, version?: number) => {
+          const demande = fabrique.open(nom, version);
+          demande.addEventListener('success', () => ouvertes.push(demande.result));
+          return demande;
+        },
+      },
+    }) as IDBFactory;
+    const env = environnement(stockageIndexedDB('coupee', espion));
+    let jeu = await pret(env);
+    // Comme iOS en arrière-plan : la connexion meurt sans prévenir l'appli.
+    ouvertes.at(-1)?.close();
+    expect((await pret(env)).partie).toEqual(jeu.partie);
+    ouvertes.at(-1)?.close();
+    jeu = await choisir(env, jeu, 'prendre');
+    expect(jeu.sauvegarde).toBe('sauvegardee');
+    expect((await pret(environnement(stockageIndexedDB('coupee', fabrique)))).partie).toEqual(jeu.partie);
+  });
+
   it('deux fenêtres : celle restée en arrière n’efface pas la partie avancée dans l’autre (#278)', async () => {
     const onglet = environnement(stockageIndexedDB('fenetres', fabrique));
     const appli = environnement(stockageIndexedDB('fenetres', fabrique));

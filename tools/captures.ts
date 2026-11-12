@@ -1960,6 +1960,10 @@ async function parcoursGrandesM11M12(navigateur: Browser, racine: string, captur
       continue;
     }
     const contexte = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR' });
+    // Le témoin est calculé sur la graine 0 : la créature y erre selon la graine, l'appli doit tirer la même pour le rejouer.
+    await contexte.addInitScript(() => {
+      crypto.getRandomValues = <T extends ArrayBufferView | null>(tableau: T): T => tableau;
+    });
     const page = await contexte.newPage();
     await page.goto(`${racine}?station=${id}`);
     await nouvelleDepuisAccueil(page);

@@ -46,47 +46,67 @@ export function attendreFin(transaction: IDBTransaction): Promise<void> {
 export function stockageIndexedDB(nom: string, fabrique: IDBFactory = indexedDB): Stockage {
   let base: Promise<IDBDatabase> | null = null;
   const connexion = (): Promise<IDBDatabase> => {
-    base ??= ouvrir(fabrique, nom).catch((erreur: unknown) => {
-      base = null;
-      throw erreur;
+    if (base) return base;
+    const ouverte = ouvrir(fabrique, nom).then(
+      (db) => {
+        // Coupée par le navigateur (données du site effacées…) : la prochaine opération rouvre (#279).
+        db.onclose = () => {
+          if (base === ouverte) base = null;
+        };
+        return db;
+      },
+      (erreur: unknown) => {
+        if (base === ouverte) base = null;
+        throw erreur;
+      },
+    );
+    base = ouverte;
+    return ouverte;
+  };
+  /** iOS peut perdre la connexion sans `close` : sur une erreur, on rouvre et on réessaie une fois, en lecture comme en écriture (#279). */
+  const essayer = async <T>(faire: (db: IDBDatabase) => Promise<T>): Promise<T> => {
+    const premiere = connexion();
+    try {
+      return await faire(await premiere);
+    } catch (erreur) {
+      if (erreur instanceof PartieRemplacee) throw erreur;
+      if (base === premiere) base = null;
+      premiere.then((db) => db.close(), () => undefined);
+      return faire(await connexion());
+    }
+  };
+  const lire = (cle: string): Promise<unknown> =>
+    essayer(async (db) => (await requete(db.transaction(MAGASIN, 'readonly').objectStore(MAGASIN).get(cle))) ?? null);
+  // Transactions annulées par un refus de `accepte` : ni erreur de connexion, ni nouvel essai.
+  const refusees = new WeakSet<IDBTransaction>();
+  const ecrire = (modifier: (magasin: IDBObjectStore) => void): Promise<void> =>
+    essayer(async (db) => {
+      const transaction = db.transaction(MAGASIN, 'readwrite');
+      modifier(transaction.objectStore(MAGASIN));
+      try {
+        await attendreFin(transaction);
+      } catch (erreur) {
+        throw refusees.has(transaction) ? new PartieRemplacee() : erreur;
+      }
     });
-    return base;
-  };
-  const lire = async (cle: string): Promise<unknown> => {
-    const db = await connexion();
-    const valeur = await requete(db.transaction(MAGASIN, 'readonly').objectStore(MAGASIN).get(cle));
-    return valeur ?? null;
-  };
-  const ecrire = async (modifier: (magasin: IDBObjectStore) => void): Promise<void> => {
-    const db = await connexion();
-    const transaction = db.transaction(MAGASIN, 'readwrite');
-    modifier(transaction.objectStore(MAGASIN));
-    await attendreFin(transaction);
-  };
   return {
     lire: () => lire(CLE),
-    ecrire: async (donnees, accepte) => {
-      let refusee = false;
-      try {
-        await ecrire((magasin) => {
-          if (accepte === undefined) {
-            magasin.put(donnees, CLE);
-            return;
+    ecrire: (donnees, accepte) =>
+      ecrire((magasin) => {
+        if (accepte === undefined) {
+          magasin.put(donnees, CLE);
+          return;
+        }
+        const actuelle = magasin.get(CLE);
+        // Écrire dans le rappel de la lecture : un `await` ici laisserait la transaction se fermer.
+        actuelle.onsuccess = () => {
+          if (accepte(actuelle.result ?? null)) magasin.put(donnees, CLE);
+          else {
+            refusees.add(magasin.transaction);
+            magasin.transaction.abort();
           }
-          const actuelle = magasin.get(CLE);
-          // Écrire dans le rappel de la lecture : un `await` ici laisserait la transaction se fermer.
-          actuelle.onsuccess = () => {
-            if (accepte(actuelle.result ?? null)) magasin.put(donnees, CLE);
-            else {
-              refusee = true;
-              magasin.transaction.abort();
-            }
-          };
-        });
-      } catch (erreur) {
-        throw refusee ? new PartieRemplacee() : erreur;
-      }
-    },
+        };
+      }),
     lireLus: () => lire(CLE_LUS),
     ecrireLus: (donnees) => ecrire((magasin) => magasin.put(donnees, CLE_LUS)),
     effacer: () =>
