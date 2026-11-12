@@ -93,7 +93,7 @@ export interface MesuresDifficulte {
   readonly sansButin?: boolean;
 }
 
-function hasardDepuis(graine: number): () => number {
+export function hasardDepuis(graine: number): () => number {
   let etat = generateurDepuisGraine(graine);
   return () => {
     const tirage = suivant(etat);
@@ -135,7 +135,7 @@ function ajouter(mesure: MesureProfil, partie: IndicateursPartie): MesureProfil 
 }
 
 /** Graine du bot pour une partie : différente par profil, la même d'une variante à l'autre. */
-const graineDuBot = (rang: number, profil: Profil): number => (rang * PROFILS.length + PROFILS.indexOf(profil)) >>> 0;
+export const graineDuBot = (rang: number, profil: Profil): number => (rang * PROFILS.length + PROFILS.indexOf(profil)) >>> 0;
 
 export interface OptionsDifficulte {
   readonly catalogue?: Catalogue;

@@ -78,6 +78,69 @@ export function aRevoirIci(observation: Observation): boolean {
 const MALUS_PRUDENT: Readonly<Record<NiveauRisque, number>> = { aucun: 0, faible: 10, modere: 40, eleve: 150, certain: 5000, mortel: 10000 };
 const MALUS_PRESSE: Readonly<Record<NiveauRisque, number>> = { aucun: 0, faible: 0, modere: 0, eleve: 0, certain: 5000, mortel: 10000 };
 
+/**
+ * Ce que fait un explorateur, geste par geste (mesure 2026-11) : les trois profils en sont des réglages, et un bot « à un seul
+ * défaut » est l'averti privé d'un geste. Comparer deux réglages sur les mêmes parties dit ce que vaut le geste.
+ */
+export interface Traits {
+  /** Malus des risques annoncés ; `sans-creature` : prudent devant le feu, le froid et le vide, sourd aux risques d'interception. */
+  readonly risque: 'prudent' | 'presse' | 'sans-creature';
+  /** Fermer derrière lui la porte qu'il vient de franchir : quand le récit annonce la créature, jamais, ou à chaque porte. */
+  readonly fermer: 'menace' | 'jamais' | 'toujours';
+  /** Regarder les documents et suivre les notes de rangement. */
+  readonly lire: boolean;
+  /** Attendre une fois devant une porte fermée vers l'inconnu, pour écouter. */
+  readonly ecouter: boolean;
+  /** Hésiter à aller plus loin depuis une pièce à trace forte. */
+  readonly traces: boolean;
+  /** Éviter les gestes annoncés bruyants quand un autre choix existe. */
+  readonly discret: boolean;
+  /** S'éloigner quand la créature est en vue. */
+  readonly fuir: boolean;
+  /**
+   * Faire d'abord ce que son dernier geste vient de rendre possible : ouvrir ou prendre le passage, ou faire le geste, que le menu refusait
+   * juste avant. Sans ce réglage, les profils d'origine préfèrent un geste neuf (200) à un passage à ouvrir (120) : devant la
+   * grille de M-02, la caisse à peine posée dessous, ils la redéplacent au lieu d'ouvrir, et la grille redevient hors de portée
+   * (mesure 2026-11). Les profils d'origine restent tels quels, pour que leurs chiffres se comparent aux anciens.
+   */
+  readonly enchainer: boolean;
+}
+
+const TRAITS_PRUDENT: Traits = { risque: 'prudent', fermer: 'menace', lire: false, ecouter: false, traces: false, discret: false, fuir: true, enchainer: false };
+const TRAITS_AVERTI: Traits = { ...TRAITS_PRUDENT, lire: true, ecouter: true, traces: true };
+
+/** Malus d'un geste annoncé bruyant pour le bot discret : il passe après une pièce inconnue (100), jamais après un geste neuf (200). */
+const MALUS_BRUIT = 60;
+
+/** Points d'un geste que le geste précédent vient de rendre possible, pour le bot qui enchaîne : au-dessus d'un geste neuf (200). */
+const PRIX_SUITE = 250;
+
+/**
+ * Bots à un seul réglage changé : l'averti (ou le prudent, voir `BASES`) privé d'un geste, ou doté d'un geste de plus. `expert`
+ * réunit les réglages qui gagnent des évacuations dans la mesure 2026-11 ; `casse-cou` est le prudent qui ignore la créature :
+ * ni ses risques annoncés, ni porte fermée derrière lui, ni fuite.
+ */
+export const VARIANTES = {
+  'sans-fermer': { ...TRAITS_AVERTI, fermer: 'jamais' },
+  'ferme-tout': { ...TRAITS_AVERTI, fermer: 'toujours' },
+  'sans-lire': { ...TRAITS_AVERTI, lire: false },
+  'sans-ecouter': { ...TRAITS_AVERTI, ecouter: false },
+  'sans-traces': { ...TRAITS_AVERTI, traces: false },
+  discret: { ...TRAITS_AVERTI, discret: true },
+  'sans-fuir': { ...TRAITS_AVERTI, fuir: false },
+  enchaine: { ...TRAITS_AVERTI, enchainer: true },
+  expert: { ...TRAITS_AVERTI, fermer: 'toujours', ecouter: false, traces: false, fuir: false, enchainer: true },
+  'prudent-enchaine': { ...TRAITS_PRUDENT, enchainer: true },
+  'casse-cou': { ...TRAITS_PRUDENT, risque: 'sans-creature', fermer: 'jamais', fuir: false },
+} as const satisfies Record<string, Traits>;
+export type Variante = keyof typeof VARIANTES;
+
+/** Profil dont chaque variante part, et dont elle prend la graine : ses parties se comparent une à une à celles de ce profil. */
+export const BASES: Readonly<Record<Variante, 'prudent' | 'averti'>> = {
+  'sans-fermer': 'averti', 'ferme-tout': 'averti', 'sans-lire': 'averti', 'sans-ecouter': 'averti', 'sans-traces': 'averti', discret: 'averti', 'sans-fuir': 'averti',
+  enchaine: 'averti', expert: 'averti', 'prudent-enchaine': 'prudent', 'casse-cou': 'prudent',
+};
+
 /** Malus d'aller plus loin depuis une pièce à trace forte, pour le bot averti, avant la rencontre ; il s'use de 50 par geste. */
 const MALUS_TRACE = 200;
 
@@ -121,9 +184,10 @@ function situation(observation: Observation): string {
  * Il écoute aussi : à sa première arrivée dans une pièce qui a une porte fermée vers une pièce pas encore visitée, il attend une
  * fois avant tout autre choix ; un « net » monte l'aperçu du passage, et son malus de risque fait le reste (D-181).
  */
-export function botExplorateur(graine: number, profil: 'prudent' | 'presse' | 'averti'): Bot {
+export function botExplorateur(graine: number, profil: 'prudent' | 'presse' | 'averti' | Traits): Bot {
   const hasard = hasardDe(graine);
-  const malus = profil === 'presse' ? MALUS_PRESSE : MALUS_PRUDENT;
+  const traits: Traits = typeof profil !== 'string' ? profil : profil === 'averti' ? TRAITS_AVERTI : profil === 'presse' ? { ...TRAITS_PRUDENT, risque: 'presse' } : TRAITS_PRUDENT;
+  const malus = traits.risque === 'presse' ? MALUS_PRESSE : MALUS_PRUDENT;
   let rencontre = false;
   /** Gestes déjà choisis dans chaque pièce à trace forte : l'hésitation s'use, pour ne pas tourner en rond. */
   const hesitations = new Map<string, number>();
@@ -155,6 +219,9 @@ export function botExplorateur(graine: number, profil: 'prudent' | 'presse' | 'a
   const usures = new Map<string, number>();
   /** Pièces où l'averti a déjà écouté, ou n'avait rien à écouter : une seule attente, à la première arrivée. */
   const ecoutees = new Set<string>();
+  /** Pour le bot qui enchaîne : pièce et commandes que le menu refusait au choix précédent, puis celles qu'il propose à présent. */
+  let refusees = new Set<string>();
+  let debloquees = new Set<string>();
 
   const inventaire = (observation: Observation): string => observation.inventaire.map((objet) => objet.id).sort().join(',');
 
@@ -205,7 +272,7 @@ export function botExplorateur(graine: number, profil: 'prudent' | 'presse' | 'a
       }
     }
     let visee: string | null = null;
-    if (profil === 'averti' && !rencontre) {
+    if (traits.lire && !rencontre) {
       let proche = Infinity;
       for (const piece of designees) {
         const route = chemins.get(piece);
@@ -230,11 +297,11 @@ export function botExplorateur(graine: number, profil: 'prudent' | 'presse' | 'a
     const surLaRoute = vers !== null && cible.id === vers.passage ? (vers.designee ? PRIX_NOTE : 85) - vers.distance : 0;
     let points = 0;
     if (action === 'lancer') points = 1000;
-    else if (action === 'fermer') points = menace && cible.id === franchi ? 400 : 2;
+    else if (action === 'fermer') points = ((menace && traits.fermer === 'menace') || traits.fermer === 'toujours') && cible.id === franchi ? 400 : 2;
     else if (action === 'aller') {
       const destination = cible.sorte === 'passage' ? cible.vers : null;
       const inconnue = destination === null || !observation.visitees.some((piece) => piece.id === destination.id);
-      points = observation.creatureVisible ? 300 : Math.max(inconnue ? 100 : 3, surLaRoute);
+      points = observation.creatureVisible && traits.fuir ? 300 : Math.max(inconnue ? 100 : 3, surLaRoute);
       if (destination !== null && destination.id === precedente && !observation.creatureVisible && surLaRoute === 0) points -= 30;
     } else if (action === 'ouvrir') points = Math.max(ouverts.has(cible.id) ? 20 : 120, surLaRoute);
     else if (action === 'attendre') points = 1;
@@ -242,12 +309,14 @@ export function botExplorateur(graine: number, profil: 'prudent' | 'presse' | 'a
     else if (action === 'prendre') points = essai === 0 ? 150 : 2;
     else if (!GESTES_DE_PASSAGE.has(action)) points = essai === 0 ? 200 : 5;
     if (essai > 0 && action !== 'aller' && surLaRoute === 0) points -= 10 * essai;
-    if (profil === 'averti' && !rencontre && vue.trace === 'forte') {
+    if (debloquees.has(cle(option.commande)) && (action === 'ouvrir' || action === 'aller' || !GESTES_DE_PASSAGE.has(action))) points = Math.max(points, PRIX_SUITE);
+    if (traits.traces && !rencontre && vue.trace === 'forte') {
       const versInconnue = action === 'aller' && cible.sorte === 'passage' && (cible.vers === null || !observation.visitees.some((piece) => piece.id === cible.vers?.id));
       if (action === 'ouvrir' || versInconnue) points -= Math.max(0, MALUS_TRACE - 50 * (hesitations.get(observation.piece.id) ?? 0));
     }
-    const risque = vue.apercu(option)?.risque ?? 'aucun';
-    return points - malus[risque] + hasard();
+    const prevu = vue.apercu(option);
+    if (traits.discret && prevu?.cout === 'bruyant') points -= MALUS_BRUIT;
+    return points - (traits.risque === 'sans-creature' && prevu?.danger?.type.startsWith('interception') === true ? 0 : malus[prevu?.risque ?? 'aucun']) + hasard();
   };
 
   return {
@@ -258,14 +327,14 @@ export function botExplorateur(graine: number, profil: 'prudent' | 'presse' | 'a
       const ici = situation(observation);
       vues.add(`${observation.piece.id}#${inventaire(observation)}`);
       rencontre ||= observation.creatureVisible || evenements.some((evenement) => evenement.type === 'premier_contact');
-      if (profil === 'averti' && !lues.has(observation.piece.id)) {
+      if (traits.lire && !lues.has(observation.piece.id)) {
         lues.add(observation.piece.id);
         for (const objet of observation.objets) {
           const lu = vue.consulter(objet.id);
           if (lu?.type === 'regarder_document' && lu.designe !== undefined) designees.add(lu.designe.id);
         }
       }
-      if (profil === 'averti' && !ecoutees.has(observation.piece.id)) {
+      if (traits.ecouter && !ecoutees.has(observation.piece.id)) {
         ecoutees.add(observation.piece.id);
         const attendre = options.find((option) => option.action === 'attendre');
         const versInconnue = observation.passages.some((passage) => !passage.ouvert && (passage.vers === null || !observation.visitees.some((piece) => piece.id === passage.vers?.id)));
@@ -276,6 +345,10 @@ export function botExplorateur(graine: number, profil: 'prudent' | 'presse' | 'a
       for (const passage of observation.passages) {
         const praticable = options.some((option) => (option.action === 'aller' || option.action === 'ouvrir') && option.cible.id === passage.id);
         if (!praticable && !bloque(passage.id, observation.actions)) bloques.set(passage.id, observation.actions);
+      }
+      if (traits.enchainer) {
+        debloquees = new Set(options.filter((option) => refusees.has(`${observation.piece.id}|${cle(option.commande)}`)).map((option) => cle(option.commande)));
+        refusees = new Set(observation.menu.filter((option) => !option.disponible).map((option) => `${observation.piece.id}|${cle(option.commande)}`));
       }
       const menace = observation.creatureVisible || evenements.some((evenement) => MENACES.has(evenement.type));
       const vers = etape(observation);
@@ -301,8 +374,8 @@ export function botExplorateur(graine: number, profil: 'prudent' | 'presse' | 'a
   };
 }
 
-export function creerBot(profil: Profil, graine: number): Bot {
-  return profil === 'aleatoire' ? botAleatoire(graine) : botExplorateur(graine, profil);
+export function creerBot(profil: Profil | Variante, graine: number): Bot {
+  return profil === 'aleatoire' ? botAleatoire(graine) : botExplorateur(graine, profil in VARIANTES ? VARIANTES[profil as Variante] : (profil as Exclude<Profil, 'aleatoire'>));
 }
 
 /** Trace de la pièce du passager, par la consultation gratuite « regarder » : ce que le joueur lit en regardant la pièce. */
@@ -312,7 +385,14 @@ function traceIci(monde: DefMonde, partie: Partie, piece: string): IntensiteTrac
 }
 
 /** Joue une partie complète avec un bot, depuis le réveil, et en rend les indicateurs. */
-export function jouerAvecBot(entree: EntreeMonde, bot: Bot, graine: number, plafond = PLAFOND_ACTIONS): { readonly indicateurs: IndicateursPartie; readonly partie: Partie } {
+export function jouerAvecBot(
+  entree: EntreeMonde,
+  bot: Bot,
+  graine: number,
+  plafond = PLAFOND_ACTIONS,
+  /** Chaque action engagée, pour une mesure de plus : ce que le joueur voyait avant, la commande, le récit et l'état qui suit. */
+  surPas?: (avant: Observation, commande: Commande, evenements: readonly Evenement[], partie: Partie) => void,
+): { readonly indicateurs: IndicateursPartie; readonly partie: Partie } {
   const { monde } = entree;
   let partie = nouvellePartie(monde, { version: 'bot', graine });
   const suivi = new SuiviPartie(monde, partie);
@@ -340,6 +420,7 @@ export function jouerAvecBot(entree: EntreeMonde, bot: Bot, graine: number, plaf
     partie = resultat.partie;
     evenements = resultat.evenements;
     suivi.noter(resultat.evenements, resultat.tirages, partie.etat);
+    surPas?.(observation, commande, resultat.evenements, partie);
   }
   return { indicateurs: suivi.resultat(), partie };
 }
